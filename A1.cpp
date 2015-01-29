@@ -16,20 +16,26 @@ class State
 	public:
 		State(){};
 		//~State();
+
 		
 	private:
-		
+
 };
 
 class Node
 {
 	public:
 		Node(){};
+		Node(const Node& n);		//copy constructor
 		//~Node();
 		Node* parent;
+		int path_cost(){return path_cost;};
+		int h(){return hst;};
 		
 	private:
-		
+		int counter;
+		int pathcost;
+		int hst;		//heuristic
 };
 
 class Problem
@@ -37,15 +43,15 @@ class Problem
 	public:
 		Problem(int sOfV, int K, int CC, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos);
 		//~Problem();
-		const int path_cost(const State& state1, const State& state2);		//returns edge cost for state1->state2 {adjacent states}
+		const int path_cost(const State& state1, const State& state2);		// returns edge cost for state1->state2 {adjacent states}
 		const int h(const State& state);									// heuristic function
-		const vector<Node*> successors(const Node& node);
-		
+		const vector<Node*> successors(const Node& node);					// returns nodes in sorted order of decreasing f(n)
+		void printSoln(const vector<Node*>& pathInReverse);					// given path in reverse, start node missing
 		void printProblemDetails();											// prints all input data
 		
 	private:
-		State startState;
-		State goalState;
+		Node* startState;
+		Node* goalState;
 		
 		int sizeOfVocab;
 		vector<char> vocab;				// vector of characters in vocabulary
@@ -130,61 +136,79 @@ const int Problem::matchingCost(const string& s1, const string& s2)		//assumes l
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DFSbb(const Problem& smp) 			// DFS branch & bound implementation
+void DFSbb(const Problem& p) 			// DFS branch & bound implementation
 {
-	// initialise f(n) using rudimentary calculation--
+	/* initialise f(n) using rudimentary calculation	
+	 * work with a stack, insert in order of decreasing f(n) = g(n) + h(n) 
+	 * in loop while !empty, pop and delete only after second count
+	 * remember shortest path yet 
+	 * if f(n) > f(n_curmin), pop & delete
+	 * if StringMapProblem.goalTest(Node) then update shortest path and f(n)
+	 * insert StringMapProblem.successors(Node) into stack in proper order */
 	
-	// work with a stack, insert in order of decreasing f(n) = g(n) + h(n) {only those with}
-	
-	// in loop while !empty, pop and delete only after second count
-	
-	// remember shortest path yet 
-	
-	// if f(n) > f(n_curmin), pop & delete
-	
-	// if StringMapProblem.goalTest(Node) then update shortest path and f(n)
-	
-	// insert StringMapProblem.successors(Node) into stack in proper order
-	
-	int estimate = smp.firstEst();
-	vector<Node> bestPathYet;
+	int bestCostYet = p.firstEst();
+	vector<Node*> bestPathYet = vector<Node*>(0);			//stores in reverse order, last node first {doesn't store first node}
 		
 	stack<Node*> theStack;
 
-	//theStack.push(start node pointer)
-	
-	// nodes have initial counter 0
+	theStack.push(p.startState)
 	
 	while (!theStack.empty())
 	{
 		Node* current = theStack.top();
-		current->counter++;
+		current->counter++;					// nodes have initial counter 0
 		
-		if (current->counter == 2)
+		if (current->counter == 2)			// seen twice, delete
 		{
 			theStack.pop();
 			delete current;
 		}
 		
-		if (current->isGoalNode())
+		else if (*current == p.goalState)	// pop, update bestCostYet and bestPathYet
 		{
-			//update estimate
-			//store path
+			// best solution yet
+			theStack.pop();
+			bestCostYet = current->path_cost();
+
+			for (vector<Node*>::iterator it = bestPathYet.begin() ; it != bestPathYet.end() ; it++)		//cleaning up previous solution
+				delete *it;
+
+			bestPathYet.resize(0);
+			
+			Node* temp = current;
+			
+			while ((*temp) != p.startState)
+			{
+				bestPathYet.push_back(new Node(*temp));
+				temp = temp->parent;
+			}
 		}
 		
-		if (current->counter == 1)
+		else //(current->counter == 1)		// insert kids if f(n) doesn't exceed bestCostYet
 		{
-			// check if g(n)+h(n) exceeds estimate
-			// if yes, then continue
-			// else, add children
-			// set parent of children to this
-		}	
-		
+			if (current->path_cost() + current->h() >= bestCostYet)		// what if initial bestCostYet is best bestCostYet?
+			{
+				theStack.pop();
+				delete current;
+			}
+			
+			else							// push successors into stack, set parents to current
+			{
+				vector<Node*> temp = p.successors(current);				// ASSERT: decreasing order of f(n)
+				
+				for (vector<Node*>::iterator it = temp.begin() ; it != temp.end() ; it++)
+				{
+					theStack.push(*it);
+					(*it)->parent = current;
+				}
+			}
+		}		
 	}
 	
-	
+	printSoln(bestPathYet);			// prints optimal solution
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
