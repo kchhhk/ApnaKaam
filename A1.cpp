@@ -9,24 +9,12 @@ using namespace std;
 
 ///////////////////////////////////////////////////		STRING MAPPING		///////////////////////////////////////////////////
 
-
-
-class State
-{
-	public:
-		State(){};
-		//~State();
-
-		
-	private:
-
-};
-
 class Node
 {
 	public:
-		Node(){};
-		Node(const Node& n);		//copy constructor
+		Node(int k);									// start Node constructor
+		Node(vector<int> stateIndices, int cost)		// successor constructor
+		Node(const Node& n);							// copy constructor for storing path
 		//~Node();
 		Node* parent;
 		int path_cost(){return path_cost;};
@@ -36,6 +24,7 @@ class Node
 		int counter;
 		int pathcost;
 		int hst;		//heuristic
+		vector<int> stateIndices;
 };
 
 class Problem
@@ -43,15 +32,15 @@ class Problem
 	public:
 		Problem(int sOfV, int K, int CC, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos);
 		//~Problem();
-		const int path_cost(const State& state1, const State& state2);		// returns edge cost for state1->state2 {adjacent states}
-		const int h(const State& state);									// heuristic function
+		const int path_cost(const Node& node1, const Node& node2);		// returns edge cost for node1->node2 {adjacent nodes}
+		const int h(const Node& node);									// heuristic function
 		const vector<Node*> successors(const Node& node);					// returns nodes in sorted order of decreasing f(n)
 		void printSoln(const vector<Node*>& pathInReverse);					// given path in reverse, start node missing
 		void printProblemDetails();											// prints all input data
 		
 	private:
-		Node* startState;
-		Node* goalState;
+		Node* startNode;
+		Node* goalNode;
 		
 		int sizeOfVocab;
 		vector<char> vocab;				// vector of characters in vocabulary
@@ -136,7 +125,7 @@ const int Problem::matchingCost(const string& s1, const string& s2)		//assumes l
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DFSbb(const Problem& p) 			// DFS branch & bound implementation
+void DFSbb(const Problem& p) 			// DFS branch & bound implementation					//!! duplicate checking??
 {
 	/* initialise f(n) using rudimentary calculation	
 	 * work with a stack, insert in order of decreasing f(n) = g(n) + h(n) 
@@ -147,11 +136,11 @@ void DFSbb(const Problem& p) 			// DFS branch & bound implementation
 	 * insert StringMapProblem.successors(Node) into stack in proper order */
 	
 	int bestCostYet = p.firstEst();
-	vector<Node*> bestPathYet = vector<Node*>(0);			//stores in reverse order, last node first {doesn't store first node}
+	vector<Node*>* bestPathYet = new vector<Node*>;				//stores in reverse order, last node first {doesn't store first node}
 		
 	stack<Node*> theStack;
 
-	theStack.push(p.startState)
+	theStack.push(p.startNode)
 	
 	while (!theStack.empty())
 	{
@@ -164,24 +153,29 @@ void DFSbb(const Problem& p) 			// DFS branch & bound implementation
 			delete current;
 		}
 		
-		else if (*current == p.goalState)	// pop, update bestCostYet and bestPathYet
+		else if (*current == p.goalNode)	// pop, update bestCostYet and bestPathYet
 		{
-			// best solution yet
 			theStack.pop();
-			bestCostYet = current->path_cost();
-
-			for (vector<Node*>::iterator it = bestPathYet.begin() ; it != bestPathYet.end() ; it++)		//cleaning up previous solution
-				delete *it;
-
-			bestPathYet.resize(0);
 			
-			Node* temp = current;
-			
-			while ((*temp) != p.startState)
+			if (current->path_cost() < bestCostYet)
 			{
-				bestPathYet.push_back(new Node(*temp));
-				temp = temp->parent;
+				bestCostYet = current->path_cost();
+
+				for (vector<Node*>::iterator it = bestPathYet->begin() ; it != bestPathYet->end() ; it++)		//cleaning up previous solution
+					delete *it;
+
+				bestPathYet->resize(0);
+			
+				Node* temp = current;
+			
+				while ((*temp) != p.startNode)
+				{
+					bestPathYet.push_back(new Node(*temp));
+					temp = temp->parent;
+				}
 			}
+				
+			delete current;
 		}
 		
 		else //(current->counter == 1)		// insert kids if f(n) doesn't exceed bestCostYet
