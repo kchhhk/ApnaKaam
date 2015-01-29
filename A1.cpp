@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <stdio.h>
 
 using namespace std;
 
@@ -13,18 +14,20 @@ class Node
 {
 	public:
 		Node(int k);									// start Node constructor
-		Node(vector<int> stateIndices, int cost)		// successor constructor
-		Node(const Node& n);							// copy constructor for storing path
+		Node(vector<int> stateIndices, int cost);		// successor constructor
+		Node(const Node& rhs);							// copy constructor for storing path
 		//~Node();
+		bool operator==(const Node& rhs);				// only checks state indices
 		Node* parent;
-		int path_cost(){return path_cost;};
+		int path_cost(){return pathcost;};
 		int h(){return hst;};
-		
+		const vector<int>& stateIndices(){return stIndices;};
+
 	private:
 		int counter;
 		int pathcost;
-		int hst;		//heuristic
-		vector<int> stateIndices;
+		int hst;				//heuristic
+		vector<int> stIndices;							// k indices, ith string has been processed till index stIndices[i]
 };
 
 class Problem
@@ -32,15 +35,18 @@ class Problem
 	public:
 		Problem(int sOfV, int K, int CC, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos);
 		//~Problem();
-		const int path_cost(const Node& node1, const Node& node2);		// returns edge cost for node1->node2 {adjacent nodes}
-		const int h(const Node& node);									// heuristic function
+		Node* startNode(){return startnode;};
+		Node* goalNode(){return goalnode;};
+		const int firstEst();												// gives trivial upper bound of initial input
+		const int path_cost(const Node& node1, const Node& node2);			// returns edge cost for node1->node2 {adjacent nodes}
+		const int h(const vector<int>& stateIndices);						// heuristic function, takes in current state indices
 		const vector<Node*> successors(const Node& node);					// returns nodes in sorted order of decreasing f(n)
 		void printSoln(const vector<Node*>& pathInReverse);					// given path in reverse, start node missing
 		void printProblemDetails();											// prints all input data
 		
 	private:
-		Node* startNode;
-		Node* goalNode;
+		Node* startnode;
+		Node* goalnode;
 		
 		int sizeOfVocab;
 		vector<char> vocab;				// vector of characters in vocabulary
@@ -48,23 +54,53 @@ class Problem
 		int K; 							// number of strings
 		vector<string> strings;			// vector of strings
 		vector<int> strLengths;			// lengths of strings
+		int maxStrLength;				// length of longest string
 		vector<vector<int> > MC;		// matching cost matrix
 		int CC;							// conversion cost
 		
 		const int matchingCost(const string& s1, const string& s2); 	// computes only matching cost (excludes CC), assumes sizes are the same
-
 };
+
+Node::Node(int k)
+{
+	stIndices = vector<int>(k,0);
+	counter   = 0;
+	pathcost  = 0;
+	hst       = Problem.h(stIndices);		// make correction	
+}
+
+Node::Node(vector<int> stateIndices, int cost)
+{
+	pathcost  = cost;
+	stIndices = stateIndices;
+	counter    = 0;
+	hst       = Problem.h(stIndices);		// make correction	
+}
+
+Node::Node(const Node& rhs)
+{
+	pathcost  = rhs.pathcost;
+	stIndices = rhs.stIndices;
+	counter   = 0;
+	hst       = rhs.hst;
+}
+
+bool Node::operator==(const Node& rhs)
+{
+	
+}
 
 Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos)
 {
 	charIndex = vector<int>(256,-1);		//256 for each ASCII, initialised to -1 {error detection}
 	
-	sizeOfVocab = sOfV;
-	K           = Ks;
-	CC          = CCo;
-	vocab       = V;
-	strings     = str;
-	MC          = MatCos;
+	sizeOfVocab  = sOfV;
+	K            = Ks;
+	CC           = CCo;
+	vocab        = V;
+	strings      = str;
+	MC           = MatCos;
+	maxStrLength = 0;
 
 	for (int i = 0 ; i <sizeOfVocab ; i++)
 		charIndex[(int)vocab[i]] = i;
@@ -74,8 +110,12 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	strLengths  = vector<int>(K);
 	
 	for (int i = 0 ; i<K ; i++)
+	{
 		strLengths[i] = strings[i].length();
-	
+		
+		if (strLengths[i]>maxStrLength)
+			maxStrLength = strLengths[i];
+	}
 	
 }
 
@@ -140,7 +180,7 @@ void DFSbb(const Problem& p) 			// DFS branch & bound implementation					//!! du
 		
 	stack<Node*> theStack;
 
-	theStack.push(p.startNode)
+	theStack.push(p.startNode())
 	
 	while (!theStack.empty())
 	{
@@ -153,7 +193,7 @@ void DFSbb(const Problem& p) 			// DFS branch & bound implementation					//!! du
 			delete current;
 		}
 		
-		else if (*current == p.goalNode)	// pop, update bestCostYet and bestPathYet
+		else if (*current == p.goalNode())	// pop, update bestCostYet and bestPathYet
 		{
 			theStack.pop();
 			
@@ -168,7 +208,7 @@ void DFSbb(const Problem& p) 			// DFS branch & bound implementation					//!! du
 			
 				Node* temp = current;
 			
-				while ((*temp) != p.startNode)
+				while ((*temp) != p.startNode())
 				{
 					bestPathYet.push_back(new Node(*temp));
 					temp = temp->parent;
