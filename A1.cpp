@@ -81,6 +81,7 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	for (int i = 0 ; i<K ; i++)
 		strLengths[i] = strings[i].length();
 	
+	
 }
 
 void Problem::printProblemDetails()
@@ -131,7 +132,7 @@ const int Problem::matchingCost(const string& s1, const string& s2)		//assumes l
 
 void DFSbb(const Problem& smp) 			// DFS branch & bound implementation
 {
-	// initialise f(n) using rudimentary calculation
+	// initialise f(n) using rudimentary calculation--
 	
 	// work with a stack, insert in order of decreasing f(n) = g(n) + h(n) {only those with}
 	
@@ -144,6 +145,44 @@ void DFSbb(const Problem& smp) 			// DFS branch & bound implementation
 	// if StringMapProblem.goalTest(Node) then update shortest path and f(n)
 	
 	// insert StringMapProblem.successors(Node) into stack in proper order
+	
+	int estimate = smp.firstEst();
+	vector<Node> bestPathYet;
+		
+	stack<Node*> theStack;
+
+	//theStack.push(start node pointer)
+	
+	// nodes have initial counter 0
+	
+	while (!theStack.empty())
+	{
+		Node* current = theStack.top();
+		current->counter++;
+		
+		if (current->counter == 2)
+		{
+			theStack.pop();
+			delete current;
+		}
+		
+		if (current->isGoalNode())
+		{
+			//update estimate
+			//store path
+		}
+		
+		if (current->counter == 1)
+		{
+			// check if g(n)+h(n) exceeds estimate
+			// if yes, then continue
+			// else, add children
+			// set parent of children to this
+		}	
+		
+	}
+	
+	
 };
 
 
