@@ -5,7 +5,7 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	charIndex = vector<int>(256,-1);		//256 for each ASCII, initialised to -1 {error detection}
 	
 	sizeOfVocab  = sOfV;
-	K            = Ks;
+	noOfStrings  = Ks;
 	CC           = CCo;
 	vocab        = V;
 	strings      = str;
@@ -17,9 +17,9 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	
 	charIndex[(int)('-')] = sizeOfVocab;		// !
 	
-	strLengths = vector<int>(K);
+	strLengths = vector<int>(noOfStrings);
 	
-	for (int i = 0 ; i<K ; i++)
+	for (int i = 0 ; i<noOfStrings ; i++)
 	{
 		strLengths[i] = strings[i].length();
 		
@@ -125,7 +125,7 @@ void Problem::printProblemDetails()
 {
 	cout << "=========================== \n" ;
 	cout << "CC             : " << CC << "\n";
-	cout << "K              : " << K << "\n";	
+	cout << "noOfStrings              : " << noOfStrings << "\n";	
 	cout << "size of vocab  : " << sizeOfVocab << "\n";
 	cout << "vocab          : {";
 	
@@ -135,7 +135,7 @@ void Problem::printProblemDetails()
 	cout << "} \n" ; 
 	cout << "strings        : ";
 
-	for (int i = 0 ; i<K ; i++ )
+	for (int i = 0 ; i<noOfStrings ; i++ )
 		cout << strings[i] << "[" << strLengths[i] << "]" << " " ;
 	
 	cout << "\n";

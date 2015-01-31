@@ -5,8 +5,284 @@
 #include <vector>
 #include <stack>
 #include <stdio.h>
+#include <algorithm>
 
 using namespace std;
+
+class Problem;
+
+class Node
+{
+	public:
+		Node(int k, const Problem& p);									// start Node constructor
+		Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
+		Node(const Node& rhs);											// copy constructor for storing path
+		//~Node();
+		bool operator==(const Node& rhs);								// only checks state indices
+		Node* parent;
+
+		int path_cost(){return pathcost;};
+		int h(){return hst;};
+		const vector<int>& stateIndices() const {return stIndices;};
+		
+		const int counter(){return count;};
+		void incrementCounter(){count++;};
+
+
+	private:
+		int count;
+		int pathcost;								// where are we computing pathcost??? ---> not computing, storing
+		int hst;									// heuristic
+		vector<int> minAlphabetMC;					// min matching cost for each alphabet and - {>0}
+		vector<int> stIndices;						// k indices, ith string has been processed till index stIndices[i]
+		vector<vector<int> > remChar;				// alphabet count in remaining strings
+};
+
+class Problem
+{
+	public:
+		Problem(int sOfV, int K, int CC, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos);
+		//~Problem();
+		Node* startNode() {return startnode;};
+		Node* goalNode(){return goalnode;};
+		const int firstEst();												// gives trivial upper bound of initial input
+		const int pathCost(const Node& node1, const Node& node2);			// returns edge cost for node1->node2 {adjacent nodes}
+		const int h(const Node& node) const;								// heuristic function, takes in current state indices
+		const vector<Node*>& successors(const Node* node);					// returns nodes in sorted order of decreasing f(n)
+		void printSoln(vector<Node*> pathInReverse);						// given path in reverse, start node missing
+		void printProblemDetails();											// prints all input data
+		int getCost(char a, char b);										// returns the matching cost for 2 characters 
+		
+	private:
+		Node* startnode;
+		Node* goalnode;
+		
+		int sizeOfVocab;
+		vector<char> vocab;				// vector of characters in vocabulary
+		vector<int> charIndex;			// position of character in Vocab and MC
+		int noOfStrings; 				// number of strings
+		vector<string> strings;			// vector of strings
+		vector<int> strLengths;			// lengths of strings
+		int maxStrLength;				// length of longest string
+		vector<vector<int> > MC;		// matching cost matrix
+		int CC;							// conversion cost
+		
+		const int matchingCost(const string& s1, const string& s2); 	// computes only matching cost (excludes CC), assumes sizes are the same
+};
+
+Node::Node(int k, const Problem& p)
+{
+	stIndices = vector<int>(k,0);
+	count     = 0;
+	pathcost  = 0;
+	hst       = p.h(*this);		// make correction	
+}
+
+Node::Node(vector<int> stateIndices, int cost, const Problem& p)
+{
+	pathcost  = cost;
+	stIndices = stateIndices;
+	count     = 0;
+	hst       = p.h(*this);		// make correction	
+}
+
+Node::Node(const Node& rhs)
+{
+	pathcost  = rhs.pathcost;
+	stIndices = rhs.stIndices;
+	count     = 0;
+	hst       = rhs.hst;
+}
+
+bool Node::operator==(const Node& rhs)
+{
+	int len = stIndices.size();
+	
+	for (int i = 0 ; i<len ; i++)
+	{
+		if (stIndices[i]!=rhs.stateIndices()[i])
+			return false;
+	}
+	
+	return true;		
+}
+
+Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos)
+{
+	charIndex = vector<int>(256,-1);		//256 for each ASCII, initialised to -1 {error detection}
+	
+	sizeOfVocab  = sOfV;
+	noOfStrings  = Ks;
+	CC           = CCo;
+	vocab        = V;
+	strings      = str;
+	MC           = MatCos;
+	maxStrLength = 0;
+
+	for (int i = 0 ; i <sizeOfVocab ; i++)
+		charIndex[(int)vocab[i]] = i;
+	
+	charIndex[(int)('-')] = sizeOfVocab;		// !
+	
+	strLengths = vector<int>(noOfStrings);
+	
+	for (int i = 0 ; i<noOfStrings ; i++)
+	{
+		strLengths[i] = strings[i].length();
+		
+		if (strLengths[i]>maxStrLength)
+			maxStrLength = strLengths[i];
+	}
+	
+}
+
+const int Problem::pathCost(const Node& node1, const Node& node2)
+{
+	vector<int> tempStateIndex1 = node1.stateIndices();
+	vector<int> tempStateIndex2 = node2.stateIndices(); 
+
+	int pc = 0;
+	string changes = "";
+
+	for (int i=0; i<noOfStrings ;i++)
+	{
+		if (tempStateIndex2[i]-tempStateIndex1[i]==1)
+		{
+			changes +=strings[i][tempStateIndex1[i]];													//replace strings[i]
+		}
+		else 
+		{
+			changes +="-";
+			pc += CC;
+		}	
+	}
+	
+
+	for (int i=0; i<noOfStrings-1; i++)
+		for (int j=i+1; j<noOfStrings; j++)
+		{
+			pc+= getCost(changes[i],changes[j]);
+		}
+	return pc;
+}
+
+const int Problem::h(const Node& node) const
+{
+	
+}
+
+int Problem::getCost(char a, char b)
+	{
+		return MC[charIndex[(int)a]][charIndex[(int)b]];	
+	}
+
+const int Problem::firstEst()																		// 	try doing it heuristically
+{
+	vector<string> tempStrings = strings;
+	int firstEstimate = 0;
+
+	for (int i=0; i<noOfStrings; i++)														//	substitute for k by no of strings
+	{
+		if (strings[i].length() < maxStrLength)													//	substitute for vec by vector of strings
+		{
+			int noOfDashes = maxStrLength - strings[i].length();
+			firstEstimate += CC * noOfDashes;
+
+			for (int j=0; j<noOfDashes ; j++)
+				tempStrings[i] += "-" ;
+		} 
+	}
+	
+	for (int i=0; i<noOfStrings-1; i++)
+	{
+		for (int j=i+1; j<noOfStrings; j++)
+		{
+			for (int k=0; k<maxStrLength; k++)
+			{
+				firstEstimate += getCost(tempStrings[i][k],tempStrings[j][k]);							
+				//strings[i][k] and strings[j][k] matrix lookup
+			}
+		}
+	}
+
+	return firstEstimate;
+}
+
+const vector<Node*>& Problem::successors(const Node* node)
+{}
+
+void Problem::printSoln(vector<Node*> pathInReverse)
+{
+	vector<int> initialIndex(noOfStrings,0);																		
+	vector<string> newstrings(noOfStrings,"");
+	//reverse(pathInReverse.begin(),pathInReverse.end());
+	int size=pathInReverse.size();
+	Node* temp;
+	for (int i=0;i<size/2;i++)
+	{
+		temp                    = pathInReverse[i];
+		pathInReverse[i]        = pathInReverse[size-i-1];
+		pathInReverse[size-i-1] = temp;
+	}
+	for (int i=0 ; i<pathInReverse.size(); i++)
+	{
+		vector<int> finalIndex = pathInReverse[i]->stateIndices();
+		for (int j=0; j< noOfStrings; j++)
+		{
+			if (finalIndex[j] - initialIndex[j] == 1)
+				newstrings[j] += strings[j][initialIndex[j]];
+			else
+				newstrings[j] += "-";
+		}
+		initialIndex = finalIndex;
+	}
+
+	for (int i = 0 ; i<noOfStrings ; i++)
+		cout << newstrings[i] << endl;
+}	
+
+void Problem::printProblemDetails()
+{
+	cout << "=========================== \n" ;
+	cout << "CC             : " << CC << "\n";
+	cout << "noOfStrings              : " << noOfStrings << "\n";	
+	cout << "size of vocab  : " << sizeOfVocab << "\n";
+	cout << "vocab          : {";
+	
+	for (vector<char>::iterator it = vocab.begin() ; it!=vocab.end() ; it++ )
+		cout << " " << *it << "(" << charIndex[(int)(*it)] << ")" << " " ;
+	
+	cout << "} \n" ; 
+	cout << "strings        : ";
+
+	for (int i = 0 ; i<noOfStrings ; i++ )
+		cout << strings[i] << "[" << strLengths[i] << "]" << " " ;
+	
+	cout << "\n";
+	cout << "MC matrix \n--------------------------- \n" ;
+	
+	for (vector<vector<int> >::iterator it = MC.begin() ; it!=MC.end() ; it++ )
+	{
+		for (vector<int>::iterator itr = it->begin() ; itr!= it->end() ; itr++ )
+			cout << *itr << " ";
+		
+		cout << "\n";
+	}
+	
+	cout << "=========================== \n" ;
+	
+	//cout << matchingCost(strings[0],strings[1]) << " " << matchingCost(strings[2],strings[1]) << " " << matchingCost(strings[0],strings[2]) <<endl;
+}
+
+const int Problem::matchingCost(const string& s1, const string& s2)		//assumes lengths are same
+{
+	int sum = 0;
+	
+	for (int i = 0 ; i<s1.length() ; i++)
+		sum += MC[charIndex[(int)(s1.at(i))]][charIndex[(int)(s2.at(i))]];
+	
+	return sum;
+}
 
 void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicate checking??
 {
@@ -82,7 +358,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 		}		
 	}
 	
-	p.printSoln(bestPathYet);			// prints optimal solution
+	p.printSoln(*bestPathYet);			// prints optimal solution
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +370,7 @@ int main()
 	//-------------------------------		INPUT		-------------------------------//
 	
 	double timeInMin;
-	int sizeOfVocab, K, CC;
+	int sizeOfVocab, noOfStrings, CC;
 	
 	scanf("%lf",&timeInMin);
 	scanf("%i",&sizeOfVocab);	
@@ -110,12 +386,12 @@ int main()
 			vocab.push_back((char)(*it));
 	}
 	
-	scanf("%i",&K);	
+	scanf("%i",&noOfStrings);	
 	
 	vector<string> strings;
 	getline(cin,temp);		//to read endline
 	
-	for (int i = 0 ; i<K ; i++)
+	for (int i = 0 ; i<noOfStrings ; i++)
 	{
 		getline(cin,temp);
 		strings.push_back(temp);
@@ -143,7 +419,34 @@ int main()
 
 //	if (end == '#')
 	
-	Problem* current = new Problem(sizeOfVocab,K,CC,vocab,strings,MC);
+	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
 	current->printProblemDetails();
 	
+	
+	/*vector<char> vocab = {'A','T'};
+	vector<string> strings = {"ATAA","TAT","TTTTTT"};
+	vector<vector<int> > MC = {{0,2,1},{2,0,1},{1,1,0}};
+	
+	Problem* current = new Problem(2,3,3,vocab,strings,MC);
+	
+//	Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
+	
+	//cout << current->firstEst() <<endl;
+	
+	Node* n1 = new Node(vector<int>{0,0,1},0,*current);
+	Node* n2 = new Node(vector<int>{1,0,1},0,*current);
+	Node* n3 = new Node(vector<int>{1,1,1},0,*current);
+	Node* n4 = new Node(vector<int>{2,1,2},0,*current);
+	Node* n5 = new Node(vector<int>{3,2,2},0,*current);
+	Node* n6 = new Node(vector<int>{4,2,3},0,*current);
+	Node* n7 = new Node(vector<int>{4,3,4},0,*current);
+	Node* n8 = new Node(vector<int>{4,3,5},0,*current);
+	Node* n9 = new Node(vector<int>{3,3,6},0,*current);
+	
+	vector<Node*> path = {n1,n2,n3,n4,n5,n6,n7,n8,n9};
+	
+	for (int i = 0 ; i<8 ; i++)
+		cout << current->pathCost(*path[i],*path[i+1]) << " ";
+	
+	cout <<endl;*/
 }
