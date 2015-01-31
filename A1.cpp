@@ -6,6 +6,7 @@
 #include <stack>
 #include <stdio.h>
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -14,14 +15,14 @@ class Problem;
 class Node
 {
 	public:
-		Node(int noOfStrings, int sizeOfVocab, const Problem& p);		// start Node constructor
-		Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
-		Node(const Node& rhs);											// copy constructor for storing path (ONLY!)
+		Node(int noOfStrings, int sizeOfVocab, const Problem& p);							// start Node constructor
+		Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfStrings);	// successor constructor
+		Node(const Node& rhs);																// copy constructor for storing path (ONLY!)
 		//~Node();
-		bool operator==(const Node& rhs);								// only checks state indices
-		Node* parent;
-
-		const int path_cost(){return pathcost;};
+		bool operator==(const Node& rhs);													// only checks state indices
+		
+		Node* getParent(){return parent;}
+		const int path_cost() const {return pathcost;};
 		const int h(){return hst;};
 		const vector<int>& stateIndices() const {return stIndices;};
 		const vector<vector<int> >& remainingChar() const {return remChar;};
@@ -31,8 +32,9 @@ class Node
 		void printNodeDetails();
 
 	private:
+		Node* parent;
 		int count;
-		int pathcost;								// where are we computing pathcost??? ---> not computing, storing
+		int pathcost;								
 		int hst;									// heuristic
 		vector<int> stIndices;						// k indices, ith string has been processed till index stIndices[i]
 		vector<vector<int> > remChar;				// alphabet count in remaining strings
@@ -49,11 +51,11 @@ class Problem
 		const vector<int> characIndex() const {return charIndex;};
 		
 		const int firstEst();												// gives trivial upper bound of initial input
-		const int pathCost(const Node& node1, const Node& node2);			// returns edge cost for node1->node2 {adjacent nodes}
-		const int h(const Node& node) const;								// heuristic function, takes in current state indices
-		const vector<Node*>& successors(const Node* node);					// returns nodes in sorted order of decreasing f(n)
+		const int pathCost(const Node& node1, const Node& node2) const;			// returns edge cost for node1->node2 {adjacent nodes}
+		const int firstHst(const Node& node) const;							// heuristic function, takes in current state indices
+		const vector<Node*> successors(Node* node);							// returns nodes in sorted order of decreasing f(n)
 		void printSoln(vector<Node*> pathInReverse);						// given path in reverse, start node missing
-		int getCost(char a, char b);										// returns the matching cost for 2 characters 
+		int getCost(char a, char b) const;										// returns the matching cost for 2 characters 
 		
 		void printProblemDetails();											// prints all input data
 		
@@ -92,15 +94,21 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 			remChar[i][p.characIndex()[(int)curr[j]]]++;
 	}
 	
-	hst       = p.h(*this);
+	hst       = p.firstHst(*this);
 }
 
-Node::Node(vector<int> stateIndices, int cost, const Problem& p)
+Node::Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfStrings)
 {
-	pathcost  = cost;
-	stIndices = stateIndices;
-	count     = 0;
-	hst       = p.h(*this);
+	stIndices    = stateIndices;
+	count        = 0;
+	parent       = par;
+
+	for (int i=0 ; i<noOfStrings ; i++)
+		if (stIndices[i]-par->stateIndices()[i] == 1)
+			remChar[i][p.characIndex()[(int)p.stringVector()[i][stateIndices[i]-1]]]--;
+
+	pathcost  = par->path_cost() + p.pathCost(*par,*this);
+	hst       = p.firstHst(*this);
 }
 
 Node::Node(const Node& rhs)
@@ -200,7 +208,7 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	
 }
 
-const int Problem::pathCost(const Node& node1, const Node& node2)
+const int Problem::pathCost(const Node& node1, const Node& node2) const
 {
 	vector<int> tempStateIndex1 = node1.stateIndices();
 	vector<int> tempStateIndex2 = node2.stateIndices(); 
@@ -229,7 +237,7 @@ const int Problem::pathCost(const Node& node1, const Node& node2)
 	return pc;
 }
 
-const int Problem::h(const Node& node) const							// heurisitic
+const int Problem::firstHst(const Node& node) const							// heurisitic
 {
 	/* FIRST STRATEGY for heurisitic 
 	 * ---------------------------------------------------------------------------------------
@@ -256,33 +264,33 @@ const int Problem::h(const Node& node) const							// heurisitic
 	h += CC*dashes;
 
 	for (int i = 0 ; i<noOfStrings-1 ; i++)                         						
-		for (int j = i+1 ; j<noOfStrings ; j++)																		// state of indices (maxLenRem = 13)
-			if (!((strLengths[i]-node.stateIndices()[i] == 0) and (strLengths[j]-node.stateIndices()[j] == 0)))
-				{																									// ----------------------------------
-					vector<int> remCharS1 = node.remainingChar()[i];												// { 1 , 5 , 4 } ->10
-					vector<int> remCharS2 = node.remainingChar()[j];												// { 1 , 3 , 7 } ->11
-					int sum1 = 0;                                                               				
-					int sum2 = 0;                                                               				
-																													// { A , B , C , - }
-					remCharS1.push_back(maxLenRem - (strLengths[i]-node.stateIndices()[i]));						// { 1 , 5 , 4 , 3 }
-					remCharS2.push_back(maxLenRem - (strLengths[j]-node.stateIndices()[j]));						// { 1 , 3 , 7 , 2 }
-				                                                                                				
-					for (int m = 0 ; m<sizeOfVocab+1 ; m++)                                     				
-					{																								// reduced
-						if (remCharS1[m] > remCharS2[m])															// { 0 , 2 , 0 , 1 }
-							sum1 += (remCharS1[m] - remCharS2[m])*minAlphabetMC[m];									// { 0 , 0 , 3 , 0 }
+		for (int j = i+1 ; j<noOfStrings ; j++)																	// state of indices (maxLenRem = 13)
+			if (!((strLengths[i]-node.stateIndices()[i] == 0) && (strLengths[j]-node.stateIndices()[j] == 0)))
+				{																								// ----------------------------------
+					vector<int> remCharS1 = node.remainingChar()[i];											// { 1 , 5 , 4 } ->10
+					vector<int> remCharS2 = node.remainingChar()[j];											// { 1 , 3 , 7 } ->11
+					int sum1 = 0;
+					int sum2 = 0;
+																												// { A , B , C , - }
+					remCharS1.push_back(maxLenRem - (strLengths[i]-node.stateIndices()[i]));					// { 1 , 5 , 4 , 3 }
+					remCharS2.push_back(maxLenRem - (strLengths[j]-node.stateIndices()[j]));					// { 1 , 3 , 7 , 2 }
 					
+					for (int m = 0 ; m<sizeOfVocab+1 ; m++)
+					{																							// reduced
+						if (remCharS1[m] > remCharS2[m])														// { 0 , 2 , 0 , 1 }
+							sum1 += (remCharS1[m] - remCharS2[m])*minAlphabetMC[m];								// { 0 , 0 , 3 , 0 }
+						
 						else 							
 							sum2 += (remCharS2[m] - remCharS1[m])*minAlphabetMC[m];
 					}
-				
+					
 					h += max(sum1,sum2);
 				}
 			
 	return h;
 }
 
-int Problem::getCost(char a, char b)
+int Problem::getCost(char a, char b) const
 	{
 		return MC[charIndex[(int)a]][charIndex[(int)b]];	
 	}
@@ -319,8 +327,37 @@ const int Problem::firstEst()																		// 	try doing it heuristically
 	return firstEstimate;
 }
 
-const vector<Node*>& Problem::successors(const Node* node)
-{}
+const vector<Node*> Problem::successors(Node* node)
+{
+	vector<int> tempStateIndex = node->stateIndices();
+
+	int remStrings = 0 ;
+	vector<int> nonBounded;
+	vector<Node*> nodeSuccessors; 
+
+	for (int j=0; j<noOfStrings; j++)
+	{
+		if (tempStateIndex[j] < strLengths[j])
+		{
+			remStrings++;
+			nonBounded.push_back(j);
+		}
+	}
+
+	int boundParser=0;
+	for (int j=0; j<pow(2,remStrings); j++)
+	{
+		bitset<96> stateUpdater = bitset<96>(j); 
+		for (int k=0; k<remStrings; k++)
+		{
+			tempStateIndex[k]+= stateUpdater[nonBounded[k]];
+		}
+		Node *tempNode = new Node(node, tempStateIndex, *this, noOfStrings);
+		nodeSuccessors.push_back(tempNode);
+	}
+
+	return nodeSuccessors;
+}
 
 void Problem::printSoln(vector<Node*> pathInReverse)
 {
@@ -447,7 +484,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 				while (!(*temp == *p.startNode()))
 				{
 					bestPathYet->push_back(new Node(*temp));
-					temp = temp->parent;
+					temp = temp->getParent();
 				}
 			}
 				
@@ -469,7 +506,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 				for (vector<Node*>::iterator it = temp.begin() ; it != temp.end() ; it++)
 				{
 					theStack.push(*it);
-					(*it)->parent = current;
+					//(*it)->parent = current;
 				}
 			}
 		}		
@@ -536,11 +573,11 @@ int main()
 
 //	if (end == '#')
 	
-	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
+/*	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
 	current->printProblemDetails();
-	current->startNode()->printNodeDetails();
-	cout <<current->firstEst()<<endl;
-	/*vector<char> vocab = {'A','T'};
+	current->startNode()->printNodeDetails();*/
+	
+	vector<char> vocab = {'A','T'};
 	vector<string> strings = {"ATAA","TAT","TTTTTT"};
 	vector<vector<int> > MC = {{0,2,1},{2,0,1},{1,1,0}};
 	
@@ -565,5 +602,5 @@ int main()
 	for (int i = 0 ; i<8 ; i++)
 		cout << current->pathCost(*path[i],*path[i+1]) << " ";
 	
-	cout <<endl;*/
+	cout <<endl;
 }
