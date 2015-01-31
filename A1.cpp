@@ -256,27 +256,28 @@ const int Problem::h(const Node& node) const							// heurisitic
 	h += CC*dashes;
 
 	for (int i = 0 ; i<noOfStrings-1 ; i++)                         						
-		for (int j = i+1 ; j<noOfStrings ; j++)													// state of indices (maxLenRem = 13)
-			{																					// ----------------------------------
-				vector<int> remCharS1 = node.remainingChar()[i];								// { 1 , 5 , 4 } ->10
-				vector<int> remCharS2 = node.remainingChar()[j];								// { 1 , 3 , 7 } ->11
-				int sum1 = 0;
-				int sum2 = 0;
-																								// { A , B , C , - }
-				remCharS1.push_back(maxLenRem - (strLengths[i]-node.stateIndices()[i]));		// { 1 , 5 , 4 , 3 }
-				remCharS2.push_back(maxLenRem - (strLengths[j]-node.stateIndices()[j]));		// { 1 , 3 , 7 , 2 }
-				
-				for (int m = 0 ; m<sizeOfVocab+1 ; m++)
-				{																				// reduced
-					if (remCharS1[m] > remCharS2[m])											// { 0 , 2 , 0 , 1 }
-						sum1 += (remCharS1[m] - remCharS2[m])*minAlphabetMC[m];					// { 0 , 0 , 3 , 0 }
+		for (int j = i+1 ; j<noOfStrings ; j++)																		// state of indices (maxLenRem = 13)
+			if (!((strLengths[i]-node.stateIndices()[i] == 0) and (strLengths[j]-node.stateIndices()[j] == 0)))
+				{																									// ----------------------------------
+					vector<int> remCharS1 = node.remainingChar()[i];												// { 1 , 5 , 4 } ->10
+					vector<int> remCharS2 = node.remainingChar()[j];												// { 1 , 3 , 7 } ->11
+					int sum1 = 0;                                                               				
+					int sum2 = 0;                                                               				
+																													// { A , B , C , - }
+					remCharS1.push_back(maxLenRem - (strLengths[i]-node.stateIndices()[i]));						// { 1 , 5 , 4 , 3 }
+					remCharS2.push_back(maxLenRem - (strLengths[j]-node.stateIndices()[j]));						// { 1 , 3 , 7 , 2 }
+				                                                                                				
+					for (int m = 0 ; m<sizeOfVocab+1 ; m++)                                     				
+					{																								// reduced
+						if (remCharS1[m] > remCharS2[m])															// { 0 , 2 , 0 , 1 }
+							sum1 += (remCharS1[m] - remCharS2[m])*minAlphabetMC[m];									// { 0 , 0 , 3 , 0 }
 					
-					else 							
-						sum2 += (remCharS2[m] - remCharS1[m])*minAlphabetMC[m];
-				}
+						else 							
+							sum2 += (remCharS2[m] - remCharS1[m])*minAlphabetMC[m];
+					}
 				
-				h += max(sum1,sum2);
-			}
+					h += max(sum1,sum2);
+				}
 			
 	return h;
 }
@@ -538,7 +539,7 @@ int main()
 	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
 	current->printProblemDetails();
 	current->startNode()->printNodeDetails();
-	
+	cout <<current->firstEst()<<endl;
 	/*vector<char> vocab = {'A','T'};
 	vector<string> strings = {"ATAA","TAT","TTTTTT"};
 	vector<vector<int> > MC = {{0,2,1},{2,0,1},{1,1,0}};
