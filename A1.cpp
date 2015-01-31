@@ -205,7 +205,6 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	
 	// startnode initialization
 	startnode = new Node(noOfStrings,sOfV,*this);
-	
 }
 
 const int Problem::pathCost(const Node& node1, const Node& node2) const
@@ -523,7 +522,7 @@ int main()
 	
 	//-------------------------------		INPUT		-------------------------------//
 	
-	double timeInMin;
+	/*double timeInMin;
 	int sizeOfVocab, noOfStrings, CC;
 	
 	scanf("%lf",&timeInMin);
@@ -567,7 +566,7 @@ int main()
 	
 	char end;
 	scanf("%c",&end);		//reads endline char
-	scanf("%c",&end); 
+	scanf("%c",&end); */
 	
 //-------------------------------------------------------------------------------//
 
@@ -587,20 +586,19 @@ int main()
 	
 	//cout << current->firstEst() <<endl;
 	
-	Node* n1 = new Node(vector<int>{0,0,1},0,*current);
-	Node* n2 = new Node(vector<int>{1,0,1},0,*current);
-	Node* n3 = new Node(vector<int>{1,1,1},0,*current);
-	Node* n4 = new Node(vector<int>{2,1,2},0,*current);
-	Node* n5 = new Node(vector<int>{3,2,2},0,*current);
-	Node* n6 = new Node(vector<int>{4,2,3},0,*current);
-	Node* n7 = new Node(vector<int>{4,3,4},0,*current);
-	Node* n8 = new Node(vector<int>{4,3,5},0,*current);
-	Node* n9 = new Node(vector<int>{3,3,6},0,*current);
+	//Node* n1 = new Node(vector<int>{0,0,1},0,*current);
+	//Node* n2 = new Node(vector<int>{1,0,1},0,*current);
+	//Node* n3 = new Node(vector<int>{1,1,1},0,*current);
 	
-	vector<Node*> path = {n1,n2,n3,n4,n5,n6,n7,n8,n9};
+	//vector<Node*> path = {n1,n2,n3,n4,n5,n6,n7,n8,n9};
 	
-	for (int i = 0 ; i<8 ; i++)
-		cout << current->pathCost(*path[i],*path[i+1]) << " ";
+	//for (int i = 0 ; i<8 ; i++)
+	//	cout << current->pathCost(*path[i],*path[i+1]) << " ";
+	
+	vector<Node*> temp = current->successors(current->startNode());
+	
+	for ( int i = 0 ; i<temp.size() ; i++)
+		temp[i]->printNodeDetails();
 	
 	cout <<endl;
 }
