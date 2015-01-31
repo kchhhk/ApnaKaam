@@ -14,16 +14,17 @@ class Problem;
 class Node
 {
 	public:
-		Node(int noOfStrings, int sizeOfVocab, const Problem& p);									// start Node constructor
+		Node(int noOfStrings, int sizeOfVocab, const Problem& p);		// start Node constructor
 		Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
-		Node(const Node& rhs);											// copy constructor for storing path
+		Node(const Node& rhs);											// copy constructor for storing path (ONLY!)
 		//~Node();
 		bool operator==(const Node& rhs);								// only checks state indices
 		Node* parent;
 
-		int path_cost(){return pathcost;};
-		int h(){return hst;};
+		const int path_cost(){return pathcost;};
+		const int h(){return hst;};
 		const vector<int>& stateIndices() const {return stIndices;};
+		const vector<vector<int> >& remainingChar() const {return remChar;};
 		
 		const int counter(){return count;};
 		void incrementCounter(){count++;};
@@ -80,7 +81,6 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 	stIndices = vector<int>(noOfStrings,0);
 	count     = 0;
 	pathcost  = 0;
-	hst       = p.h(*this);		// make correction	
 	remChar   = vector<vector<int> >(noOfStrings, vector<int>(sizeOfVocab));
 	
 	for (int i = 0 ; i<noOfStrings ; i++)
@@ -91,6 +91,8 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 		for (int j = 0 ; j<l ; j++)
 			remChar[i][p.characIndex()[(int)curr[j]]]++;
 	}
+	
+	hst       = p.h(*this);
 }
 
 Node::Node(vector<int> stateIndices, int cost, const Problem& p)
@@ -98,7 +100,7 @@ Node::Node(vector<int> stateIndices, int cost, const Problem& p)
 	pathcost  = cost;
 	stIndices = stateIndices;
 	count     = 0;
-	hst       = p.h(*this);		// make correction	
+	hst       = p.h(*this);
 }
 
 Node::Node(const Node& rhs)
@@ -227,9 +229,56 @@ const int Problem::pathCost(const Node& node1, const Node& node2)
 	return pc;
 }
 
-const int Problem::h(const Node& node) const
+const int Problem::h(const Node& node) const							// heurisitic
 {
+	/* FIRST STRATEGY for heurisitic 
+	 * ---------------------------------------------------------------------------------------
+	 * find the longest remaining string length
+	 * at the very least, all other strings must be built up to that length
+	 * calculate the corresponding number of dashes to be introduced
+	 * now consider strings two at a time ( k C 2), find the diff in lengths
+	 * we can assume that MC=0 for diagonal elements
+	 * reduce common aphabets {4G in s1, 3G in s2 --> 1G in s1}
+	 * take max(summation(min each apha for s1),summation(min each alpha for s2)
+	 * ---------------------------------------------------------------------------------------*/
 	
+	int dashes = 0;				// for CC cost, total min number of dashes to be introduced
+	int maxLenRem = 0;			// longest remaining string length
+	int h = 0;					// heuristic value
+	
+	for (int i = 0 ; i<noOfStrings ; i++)
+		if (strLengths[i]-node.stateIndices()[i] > maxLenRem)
+			maxLenRem = strLengths[i]-node.stateIndices()[i];
+	
+	for (int i = 0 ; i<noOfStrings ; i++)
+		dashes += maxLenRem - (strLengths[i]-node.stateIndices()[i]);
+	
+	h += CC*dashes;
+
+	for (int i = 0 ; i<noOfStrings-1 ; i++)                         						
+		for (int j = i+1 ; j<noOfStrings ; j++)													// state of indices (maxLenRem = 13)
+			{																					// ----------------------------------
+				vector<int> remCharS1 = node.remainingChar()[i];								// { 1 , 5 , 4 } ->10
+				vector<int> remCharS2 = node.remainingChar()[j];								// { 1 , 3 , 7 } ->11
+				int sum1 = 0;
+				int sum2 = 0;
+																								// { A , B , C , - }
+				remCharS1.push_back(maxLenRem - (strLengths[i]-node.stateIndices()[i]));		// { 1 , 5 , 4 , 3 }
+				remCharS2.push_back(maxLenRem - (strLengths[j]-node.stateIndices()[j]));		// { 1 , 3 , 7 , 2 }
+				
+				for (int m = 0 ; m<sizeOfVocab+1 ; m++)
+				{																				// reduced
+					if (remCharS1[m] > remCharS2[m])											// { 0 , 2 , 0 , 1 }
+						sum1 += (remCharS1[m] - remCharS2[m])*minAlphabetMC[m];					// { 0 , 0 , 3 , 0 }
+					
+					else 							
+						sum2 += (remCharS2[m] - remCharS1[m])*minAlphabetMC[m];
+				}
+				
+				h += max(sum1,sum2);
+			}
+			
+	return h;
 }
 
 int Problem::getCost(char a, char b)
