@@ -342,13 +342,13 @@ const vector<Node*> Problem::successors(Node* node)
 			nonBounded.push_back(j);
 		}
 	}
-
-	int boundParser=0;
+	
 	for (int j=0; j<pow(2,remStrings); j++)
 	{
 		bitset<96> stateUpdater = bitset<96>(j); 
 		for (int k=0; k<remStrings; k++)
 		{
+				cout << "oollalalalala" << endl <<endl;
 			tempStateIndex[k]+= stateUpdater[nonBounded[k]];
 		}
 		Node *tempNode = new Node(node, tempStateIndex, *this, noOfStrings);
