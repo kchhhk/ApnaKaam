@@ -14,7 +14,7 @@ class Problem;
 class Node
 {
 	public:
-		Node(int k, const Problem& p);									// start Node constructor
+		Node(int noOfStrings, int sizeOfVocab, const Problem& p);									// start Node constructor
 		Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
 		Node(const Node& rhs);											// copy constructor for storing path
 		//~Node();
@@ -27,13 +27,12 @@ class Node
 		
 		const int counter(){return count;};
 		void incrementCounter(){count++;};
-
+		void printNodeDetails();
 
 	private:
 		int count;
 		int pathcost;								// where are we computing pathcost??? ---> not computing, storing
 		int hst;									// heuristic
-		vector<int> minAlphabetMC;					// min matching cost for each alphabet and - {>0}
 		vector<int> stIndices;						// k indices, ith string has been processed till index stIndices[i]
 		vector<vector<int> > remChar;				// alphabet count in remaining strings
 };
@@ -45,13 +44,17 @@ class Problem
 		//~Problem();
 		Node* startNode() {return startnode;};
 		Node* goalNode(){return goalnode;};
+		const vector<string>& stringVector() const {return strings;};
+		const vector<int> characIndex() const {return charIndex;};
+		
 		const int firstEst();												// gives trivial upper bound of initial input
 		const int pathCost(const Node& node1, const Node& node2);			// returns edge cost for node1->node2 {adjacent nodes}
 		const int h(const Node& node) const;								// heuristic function, takes in current state indices
 		const vector<Node*>& successors(const Node* node);					// returns nodes in sorted order of decreasing f(n)
 		void printSoln(vector<Node*> pathInReverse);						// given path in reverse, start node missing
-		void printProblemDetails();											// prints all input data
 		int getCost(char a, char b);										// returns the matching cost for 2 characters 
+		
+		void printProblemDetails();											// prints all input data
 		
 	private:
 		Node* startnode;
@@ -59,23 +62,35 @@ class Problem
 		
 		int sizeOfVocab;
 		vector<char> vocab;				// vector of characters in vocabulary
-		vector<int> charIndex;			// position of character in Vocab and MC
 		int noOfStrings; 				// number of strings
 		vector<string> strings;			// vector of strings
-		vector<int> strLengths;			// lengths of strings
-		int maxStrLength;				// length of longest string
 		vector<vector<int> > MC;		// matching cost matrix
 		int CC;							// conversion cost
+
+		vector<int> charIndex;			// position of character in Vocab and MC
+		vector<int> strLengths;			// lengths of strings
+		int maxStrLength;				// length of longest string
+		vector<int> minAlphabetMC;		// min matching cost for each alphabet and - {>0}
 		
 		const int matchingCost(const string& s1, const string& s2); 	// computes only matching cost (excludes CC), assumes sizes are the same
 };
 
-Node::Node(int k, const Problem& p)
+Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 {
-	stIndices = vector<int>(k,0);
+	stIndices = vector<int>(noOfStrings,0);
 	count     = 0;
 	pathcost  = 0;
 	hst       = p.h(*this);		// make correction	
+	remChar   = vector<vector<int> >(noOfStrings, vector<int>(sizeOfVocab));
+	
+	for (int i = 0 ; i<noOfStrings ; i++)
+	{
+		string curr = p.stringVector()[i];
+		int l       = curr.length();
+
+		for (int j = 0 ; j<l ; j++)
+			remChar[i][p.characIndex()[(int)curr[j]]]++;
+	}
 }
 
 Node::Node(vector<int> stateIndices, int cost, const Problem& p)
@@ -94,6 +109,31 @@ Node::Node(const Node& rhs)
 	hst       = rhs.hst;
 }
 
+void Node::printNodeDetails()
+{
+	cout << "=========================== \n" ;
+	cout << "State indices       : ";
+	
+	for (vector<int>::iterator it = stIndices.begin() ; it!= stIndices.end() ; it++)
+		cout << *it << " ";
+	cout << "\n";
+	
+	cout << "Path cost till Node : " << pathcost  << endl;
+	cout << "Heuristic value     : " << hst <<endl;
+	cout << "Rem char count      : { ";
+	
+	for (vector<vector<int> >::iterator it = remChar.begin() ; it!=remChar.end() ; it++)
+		{
+			cout << "( ";
+			for (vector<int>::iterator itr = it->begin(); itr!= it->end() ; itr++)
+				cout << *itr << " ";
+			cout << ") ";
+		}
+		
+	cout << "} \n";
+	cout << "=========================== \n" ;
+}
+
 bool Node::operator==(const Node& rhs)
 {
 	int len = stIndices.size();
@@ -109,7 +149,8 @@ bool Node::operator==(const Node& rhs)
 
 Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<string>& str, const vector<vector<int> >& MatCos)
 {
-	charIndex = vector<int>(256,-1);		//256 for each ASCII, initialised to -1 {error detection}
+	charIndex     = vector<int>(256,-1);		//256 for each ASCII, initialised to -1 {error detection}
+	minAlphabetMC = vector<int>(sOfV+1);
 	
 	sizeOfVocab  = sOfV;
 	noOfStrings  = Ks;
@@ -119,11 +160,13 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	MC           = MatCos;
 	maxStrLength = 0;
 
+	// char Index initialization
 	for (int i = 0 ; i <sizeOfVocab ; i++)
 		charIndex[(int)vocab[i]] = i;
 	
 	charIndex[(int)('-')] = sizeOfVocab;		// !
 	
+	// strLengths and maxStrLength initialization
 	strLengths = vector<int>(noOfStrings);
 	
 	for (int i = 0 ; i<noOfStrings ; i++)
@@ -133,6 +176,25 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 		if (strLengths[i]>maxStrLength)
 			maxStrLength = strLengths[i];
 	}
+	
+	// minAlphabetMC initialization
+	for (int i = 0 ; i<=sizeOfVocab; i++)		// <= because dash in the end
+	{
+		int curmin;
+		if (i!=sizeOfVocab) curmin = MC[i][i+1];
+		else curmin = MC[i][i-1];
+			
+		for (int j = 0 ; j<=sizeOfVocab ; j++)
+		{
+			if (j!=i)
+				if (MC[i][j] < curmin) curmin = MC[i][j];
+		}
+		
+		minAlphabetMC[i] = curmin;
+	}
+	
+	// startnode initialization
+	startnode = new Node(noOfStrings,sOfV,*this);
 	
 }
 
@@ -157,7 +219,6 @@ const int Problem::pathCost(const Node& node1, const Node& node2)
 		}	
 	}
 	
-
 	for (int i=0; i<noOfStrings-1; i++)
 		for (int j=i+1; j<noOfStrings; j++)
 		{
@@ -245,7 +306,7 @@ void Problem::printProblemDetails()
 {
 	cout << "=========================== \n" ;
 	cout << "CC             : " << CC << "\n";
-	cout << "noOfStrings              : " << noOfStrings << "\n";	
+	cout << "noOfStrings    : " << noOfStrings << "\n";	
 	cout << "size of vocab  : " << sizeOfVocab << "\n";
 	cout << "vocab          : {";
 	
@@ -268,6 +329,12 @@ void Problem::printProblemDetails()
 		
 		cout << "\n";
 	}
+	cout << "MC matrix \n--------------------------- \n" ;
+	cout << "min Alphabet wise MC  : ";
+	for (vector<int>::iterator it = minAlphabetMC.begin() ; it!=minAlphabetMC.end() ; it++)
+		cout << *it << " ";
+	
+	cout << "\n";
 	
 	cout << "=========================== \n" ;
 	
@@ -421,7 +488,7 @@ int main()
 	
 	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
 	current->printProblemDetails();
-	
+	current->startNode()->printNodeDetails();
 	
 	/*vector<char> vocab = {'A','T'};
 	vector<string> strings = {"ATAA","TAT","TTTTTT"};
