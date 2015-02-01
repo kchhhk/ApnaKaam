@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 
 using namespace std;
 
@@ -21,9 +22,9 @@ class Node
 		Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfStrings);		// successor constructor
 		Node(const Node& rhs);																// copy constructor for storing path (ONLY!)
 		Node(const vector<int> endStateIndices);											// goal Node constructor
-		~Node();
-		bool operator==(const Node& rhs);													// only checks state indices
-		bool operator<(const Node& rhs);
+		//~Node();
+		bool operator==(const Node& rhs) const;													// only checks state indices
+		bool operator<(const Node& rhs) const;
 		
 		Node* getParent(){return parent;}
 		const int path_cost() const {return pathcost;};
@@ -118,7 +119,7 @@ Node::Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfString
 	hst       = p.firstHst(*this);
 	//printNodeDetails();
 		nodeCount++;
-	//	if (nodeCount%100 == 0)
+	//	if (nodeCount>0 and nodeCount%5000 == 0)
 	//		cout << "Node count : " << nodeCount <<endl;
 }
 
@@ -160,10 +161,10 @@ void Node::printNodeDetails()
 	cout << "=========================== \n" ;
 }
 
-Node::~Node()
-	{nodeCount--;}
+//Node::~Node()
+//	{nodeCount--;}
 
-bool Node::operator==(const Node& rhs)
+bool Node::operator==(const Node& rhs) const
 {
 	int len = stIndices.size();
 	
@@ -176,7 +177,7 @@ bool Node::operator==(const Node& rhs)
 	return true;		
 }
 
-bool Node::operator<(const Node& rhs)
+bool Node::operator<(const Node& rhs) const
 {
 	return hst+pathcost < rhs.h() + rhs.path_cost();
 }
@@ -262,7 +263,7 @@ const int Problem::pathCost(const Node& node1, const Node& node2) const
 }
 
 const int Problem::firstHst(const Node& node) const							// heurisitic
-{
+{//return 0;
 	/* FIRST STRATEGY for heurisitic 
 	 * ---------------------------------------------------------------------------------------
 	 * find the longest remaining string length
@@ -381,10 +382,16 @@ const vector<Node*> Problem::successors(Node* node)
 		nodeSuccessors.push_back(tempNode);
 		tempStateIndex = node->stateIndices();
 	}
-
-	sort(nodeSuccessors.begin() , nodeSuccessors.end());
-	reverse(nodeSuccessors.begin() , nodeSuccessors.end());
+	
+	sort(nodeSuccessors.begin() , nodeSuccessors.end(), [](Node* a, Node* b){return a->path_cost() + a->h() > b->path_cost() + b->h();});	// for decreasing order	
 	return nodeSuccessors;
+	
+	/*for (int i = 0 ; i<nodeSuccessors.size()-1 ; i++)
+			{
+				int tem = nodeSuccessors[i]->path_cost()+nodeSuccessors[i]->h();
+				cout << "Node f(n) : " << tem << endl;
+			}
+	cout << "xxxxxxxxxxxxxxxxxxx" <<endl;	*/
 }
 
 void Problem::printSoln(vector<Node*> pathInReverse)
@@ -539,6 +546,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 			}
 		}		
 	}
+	cout << "Nodes gen : " << Node::nodeCount <<endl;
 	cout << bestCostYet << endl;
 	p.printSoln(*bestPathYet);			// prints optimal solution
 };
@@ -598,37 +606,18 @@ int main()
 	scanf("%c",&end); 
 	
 //-------------------------------------------------------------------------------//
-
+	clock_t start;
+	double diff;
+	start = clock();
 //	if (end == '#')
 
 	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
 	cout << "First est : " << current->firstEst() <<endl;
 	DFSbb(*current);
 	
-/*	
-	vector<char> vocab = {'A','T'};
-	vector<string> strings = {"ATAA","TAT","TTTTTT"};
-	vector<vector<int> > MC = {{0,2,1},{2,0,1},{1,1,0}};
 	
-	Problem* current = new Problem(2,3,3,vocab,strings,MC);
 	
-//	Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
+	diff = ( std::clock() - start ) / (double)CLOCKS_PER_SEC;
+	cout<<"time taken: "<< diff <<" sec\n" <<"\n";
 	
-	//cout << current->firstEst() <<endl;
-	
-	//Node* n1 = new Node(vector<int>{0,0,1},0,*current);
-	//Node* n2 = new Node(vector<int>{1,0,1},0,*current);
-	//Node* n3 = new Node(vector<int>{1,1,1},0,*current);
-	
-	//vector<Node*> path = {n1,n2,n3,n4,n5,n6,n7,n8,n9};
-	
-	//for (int i = 0 ; i<8 ; i++)
-	//	cout << current->pathCost(*path[i],*path[i+1]) << " ";
-	
-	vector<Node*> temp = current->successors(current->startNode());
-	
-	for ( int i = 0 ; i<temp.size() ; i++)
-		temp[i]->printNodeDetails();
-	
-	cout <<endl;*/
 }
