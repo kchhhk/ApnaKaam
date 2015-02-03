@@ -9,9 +9,6 @@
 #include <cmath>
 #include <ctime>
 
-
-
-
 #ifndef PROBLEM_H
 	#define PROBLEM_H
 
@@ -31,6 +28,7 @@ class Problem
 		const int firstEst();												// gives trivial upper bound of initial input
 		const int pathCost(const Node& node1, const Node& node2) const;			// returns edge cost for node1->node2 {adjacent nodes}
 		const int firstHst(const Node& node) const;							// heuristic function, takes in current state indices
+		const int DPhst(const Node& node) const;
 		const vector<Node*> successors(Node* node);							// returns nodes in sorted order of decreasing f(n)
 		void printSoln(vector<Node*> pathInReverse);						// given path in reverse, start node missing
 		int getCost(char a, char b) const;										// returns the matching cost for 2 characters 
@@ -52,8 +50,11 @@ class Problem
 		vector<int> strLengths;			// lengths of strings
 		int maxStrLength;				// length of longest string
 		vector<int> minAlphabetMC;		// min matching cost for each alphabet and - {>0}
+
+		vector<vector<vector<vector<int> > > > DPsolvedMatrix;		// DPsolve stored in DPsolvedMatrix[i][j] and [j][i]
 		
 		const int matchingCost(const string& s1, const string& s2); 	// computes only matching cost (excludes CC), assumes sizes are the same
+		vector<vector<int> > DPsolve(const string& s1, const string& s2);		// DP for every state 
 };
 
 #endif

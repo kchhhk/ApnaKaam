@@ -101,6 +101,7 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 	}
 	nodeCount=1;
 	hst       = p.firstHst(*this);
+	//cout << hst <<endl;
 	//printNodeDetails();
 }
 
@@ -316,7 +317,7 @@ const int Problem::firstHst(const Node& node) const							// heurisitic
 }
 
 int Problem::getCost(char a, char b) const
-	{
+	{ 
 		return MC[charIndex[(int)a]][charIndex[(int)b]];	
 	}
 
@@ -336,13 +337,13 @@ const int Problem::firstEst()																		// 	try doing it heuristically
 				tempStrings[i] += "-" ;
 		} 
 	}
-	
+
 	for (int i=0; i<noOfStrings-1; i++)
 	{
 		for (int j=i+1; j<noOfStrings; j++)
 		{
 			for (int k=0; k<maxStrLength; k++)
-			{
+			{ 
 				firstEstimate += getCost(tempStrings[i][k],tempStrings[j][k]);							
 				//strings[i][k] and strings[j][k] matrix lookup
 			}
@@ -408,7 +409,7 @@ void Problem::printSoln(vector<Node*> pathInReverse)
 		pathInReverse[size-i-1] = temp;
 	}
 	for (int i=0 ; i<pathInReverse.size(); i++)
-	{
+	{pathInReverse[i]->printNodeDetails();
 		vector<int> finalIndex = pathInReverse[i]->stateIndices();
 		for (int j=0; j< noOfStrings; j++)
 		{
@@ -527,7 +528,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 		}
 		
 		else //(current->counter() == 1)		// insert kids if f(n) doesn't exceed bestCostYet
-		{
+		{	
 			if (current->path_cost() + current->h() >= bestCostYet)		// what if initial bestCostYet is best bestCostYet?
 			{
 				theStack.pop();

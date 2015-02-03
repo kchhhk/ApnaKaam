@@ -9,12 +9,6 @@
 #include <cmath>
 #include <ctime>
 
-
-
-
-
-
-
 #ifndef NODE_CPP
 	#define NODE_CPP	
 
@@ -37,7 +31,7 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 			remChar[i][p.characIndex()[(int)curr[j]]]++;
 	}
 	nodeCount=1;
-	hst       = p.firstHst(*this);
+	hst       = p.DPhst(*this);
 	//printNodeDetails();
 }
 
@@ -53,7 +47,7 @@ Node::Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfString
 			remChar[i][p.characIndex()[(int)p.stringVector()[i][stateIndices[i]-1]]]--;
 
 	pathcost  = par->path_cost() + p.pathCost(*par,*this);
-	hst       = p.firstHst(*this);
+	hst       = p.DPhst(*this);
 	//printNodeDetails();
 		nodeCount++;
 	//	if (nodeCount>0 and nodeCount%5000 == 0)

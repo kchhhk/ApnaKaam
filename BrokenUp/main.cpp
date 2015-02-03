@@ -20,12 +20,6 @@ using namespace std;
 #include "Problem.cpp"
 #include "Node.cpp"
 
-
-
-
-
-
-
 void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicate checking??
 {
 	/* initialise f(n) using rudimentary calculation	
@@ -57,7 +51,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 		else if (*current == *p.goalNode())	// pop, update bestCostYet and bestPathYet
 		{
 			theStack.pop();
-			
+					
 			if (current->path_cost() < bestCostYet)
 			{
 				bestCostYet = current->path_cost();
@@ -81,6 +75,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 		
 		else //(current->counter() == 1)		// insert kids if f(n) doesn't exceed bestCostYet
 		{
+			
 			if (current->path_cost() + current->h() >= bestCostYet)		// what if initial bestCostYet is best bestCostYet?
 			{
 				theStack.pop();
@@ -106,6 +101,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Node::nodeCount=0;
+
 int main()
 {
 	//std::bitset<4>(10);
@@ -166,6 +162,7 @@ int main()
 
 	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
 	cout << "First est : " << current->firstEst() <<endl;
+	
 	DFSbb(*current);
 	
 	

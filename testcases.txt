@@ -106,7 +106,7 @@ time taken: 33.1415 sec
 4
 a, c, t, g
 3
-actggtgtgt 
+actggtgtgt
 tgaacccgga
 cagtgagtga
 1

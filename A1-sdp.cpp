@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <algorithm>
 #include <cmath>
+#include <ctime>
 
 using namespace std;
 
@@ -21,9 +22,9 @@ class Node
 		Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfStrings);		// successor constructor
 		Node(const Node& rhs);																// copy constructor for storing path (ONLY!)
 		Node(const vector<int> endStateIndices);											// goal Node constructor
-		~Node();
-		bool operator==(const Node& rhs);													// only checks state indices
-		bool operator<(const Node& rhs);
+		//~Node();
+		bool operator==(const Node& rhs) const;													// only checks state indices
+		bool operator<(const Node& rhs) const;
 		
 		Node* getParent(){return parent;}
 		const int path_cost() const {return pathcost;};
@@ -81,6 +82,8 @@ class Problem
 		vector<int> minAlphabetMC;		// min matching cost for each alphabet and - {>0}
 		
 		const int matchingCost(const string& s1, const string& s2); 	// computes only matching cost (excludes CC), assumes sizes are the same
+		
+		vector<vector<int> > DPsolve(const string& s1, const string& s2);		// DP for every state 
 };
 
 Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
@@ -100,6 +103,7 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 	}
 	nodeCount=1;
 	hst       = p.firstHst(*this);
+	//cout << hst <<endl;
 	//printNodeDetails();
 }
 
@@ -118,7 +122,7 @@ Node::Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfString
 	hst       = p.firstHst(*this);
 	//printNodeDetails();
 		nodeCount++;
-	//	if (nodeCount%100 == 0)
+	//	if (nodeCount>0 and nodeCount%5000 == 0)
 	//		cout << "Node count : " << nodeCount <<endl;
 }
 
@@ -160,10 +164,10 @@ void Node::printNodeDetails()
 	cout << "=========================== \n" ;
 }
 
-Node::~Node()
-	{nodeCount--;}
+//Node::~Node()
+//	{nodeCount--;}
 
-bool Node::operator==(const Node& rhs)
+bool Node::operator==(const Node& rhs) const
 {
 	int len = stIndices.size();
 	
@@ -176,7 +180,7 @@ bool Node::operator==(const Node& rhs)
 	return true;		
 }
 
-bool Node::operator<(const Node& rhs)
+bool Node::operator<(const Node& rhs) const
 {
 	return hst+pathcost < rhs.h() + rhs.path_cost();
 }
@@ -227,6 +231,8 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 		minAlphabetMC[i] = curmin;
 	}
 	
+	cout << "Dp says : " << DPsolve(strings[0],strings[1])[0][0] << endl;
+	
 	// startnode and goalnode initialization
 	startnode = new Node(noOfStrings,sOfV,*this);
 	goalnode  = new Node(strLengths);
@@ -262,7 +268,7 @@ const int Problem::pathCost(const Node& node1, const Node& node2) const
 }
 
 const int Problem::firstHst(const Node& node) const							// heurisitic
-{
+{//return 0;
 	/* FIRST STRATEGY for heurisitic 
 	 * ---------------------------------------------------------------------------------------
 	 * find the longest remaining string length
@@ -315,7 +321,7 @@ const int Problem::firstHst(const Node& node) const							// heurisitic
 }
 
 int Problem::getCost(char a, char b) const
-	{
+	{ 
 		return MC[charIndex[(int)a]][charIndex[(int)b]];	
 	}
 
@@ -335,13 +341,13 @@ const int Problem::firstEst()																		// 	try doing it heuristically
 				tempStrings[i] += "-" ;
 		} 
 	}
-	
+
 	for (int i=0; i<noOfStrings-1; i++)
 	{
 		for (int j=i+1; j<noOfStrings; j++)
 		{
 			for (int k=0; k<maxStrLength; k++)
-			{
+			{ 
 				firstEstimate += getCost(tempStrings[i][k],tempStrings[j][k]);							
 				//strings[i][k] and strings[j][k] matrix lookup
 			}
@@ -381,10 +387,16 @@ const vector<Node*> Problem::successors(Node* node)
 		nodeSuccessors.push_back(tempNode);
 		tempStateIndex = node->stateIndices();
 	}
-
-	sort(nodeSuccessors.begin() , nodeSuccessors.end());
-	reverse(nodeSuccessors.begin() , nodeSuccessors.end());
+	
+	sort(nodeSuccessors.begin() , nodeSuccessors.end(), [](Node* a, Node* b){return a->path_cost() + a->h() > b->path_cost() + b->h();});	// for decreasing order	
 	return nodeSuccessors;
+	
+	/*for (int i = 0 ; i<nodeSuccessors.size()-1 ; i++)
+			{
+				int tem = nodeSuccessors[i]->path_cost()+nodeSuccessors[i]->h();
+				cout << "Node f(n) : " << tem << endl;
+			}
+	cout << "xxxxxxxxxxxxxxxxxxx" <<endl;	*/
 }
 
 void Problem::printSoln(vector<Node*> pathInReverse)
@@ -415,7 +427,113 @@ void Problem::printSoln(vector<Node*> pathInReverse)
 
 	for (int i = 0 ; i<noOfStrings ; i++)
 		cout << newstrings[i] << endl;
-}	
+}
+
+vector<vector<int> > Problem::DPsolve(const string& s1, const string& s2)				// [i][j] has (best soln - CC cost)
+{
+	vector<vector<int> > nodeCost(s1.length()+1 , vector<int>(s2.length()+1));			// initially includes cost of dashes, remove before returning
+	vector<vector<int> > nodeDashes(s1.length()+1 , vector<int>(s2.length()+1));		// no of dashes in optimal solution, need to remove cost in the end
+	
+	int CCeff = CC;
+	int x = s1.length();	   	//	-------> y
+	int y = s2.length();		//  |
+	
+	nodeCost[x][y]   = 0;
+	nodeDashes[x][y] = 0;
+	x--;
+	
+	while (x>=0)
+	{
+		nodeDashes[x][y] = nodeDashes[x+1][y] + 1;
+		nodeCost[x][y] = nodeCost[x+1][y] + MC[charIndex[(int)s1[x]]][sizeOfVocab] + CCeff;		// matching with dash
+		x--;
+	}
+	
+	x = s1.length(); y--; 
+	
+	while (y>=0)
+	{
+		nodeDashes[x][y] = nodeDashes[x][y+1] + 1;
+		nodeCost[x][y] = nodeCost[x][y+1] + MC[charIndex[(int)s2[y]]][sizeOfVocab] + CCeff;		// matching with dash
+		y--;
+	}
+
+	y = s2.length()-1 ; x--;	// x = s1.length() - 1
+	
+	while (x>=0 and y>=0)
+	{
+		int x_cur = x;
+		int y_cur = y;
+		
+		while (x_cur>=0)
+		{
+			int botNbr    = nodeCost[x_cur+1][y_cur] + CCeff + MC[sizeOfVocab][charIndex[(int)s1[x_cur]]];			//edge costs
+			int diagNbr   = nodeCost[x_cur+1][y_cur+1] + MC[charIndex[(int)s2[y_cur]]][charIndex[(int)s1[x_cur]]];
+			int rightNbr  = nodeCost[x_cur][y_cur+1] + CCeff + MC[sizeOfVocab][charIndex[(int)s2[y_cur]]];		
+		
+			int minNgb = min(botNbr,min(diagNbr , rightNbr));
+		
+			if (minNgb == botNbr)
+			{
+				nodeDashes[x_cur][y_cur] = nodeDashes[x_cur+1][y_cur] + 1;
+				nodeCost[x_cur][y_cur] = botNbr;
+			}
+		
+			else if (minNgb == diagNbr)
+			{
+				nodeDashes[x_cur][y_cur] = nodeDashes[x_cur+1][y_cur+1];
+				nodeCost[x_cur][y_cur] = diagNbr;		
+			}
+		
+			else // == rightNbr
+			{
+				nodeDashes[x_cur][y_cur] = nodeDashes[x_cur][y_cur+1] + 1;
+				nodeCost[x_cur][y_cur] = rightNbr;		
+			}
+			
+			x_cur--;
+		}
+		
+		x_cur = x; y_cur--;
+		
+		while (y_cur>=0) // same loop as above
+		{
+			int botNbr    = nodeCost[x_cur+1][y_cur] + CCeff + MC[sizeOfVocab][charIndex[(int)s1[x_cur]]];			//edge costs
+			int diagNbr   = nodeCost[x_cur+1][y_cur+1] + MC[charIndex[(int)s2[y_cur]]][charIndex[(int)s1[x_cur]]];
+			int rightNbr  = nodeCost[x_cur][y_cur+1] + CCeff + MC[sizeOfVocab][charIndex[(int)s2[y_cur]]];
+		
+			int minNgb = min(botNbr, min(diagNbr , rightNbr));
+		
+			if (minNgb == botNbr)
+			{
+				nodeDashes[x_cur][y_cur] = nodeDashes[x_cur+1][y_cur] + 1;
+				nodeCost[x_cur][y_cur] = botNbr;
+			}
+		
+			else if (minNgb == diagNbr)
+			{
+				nodeDashes[x_cur][y_cur] = nodeDashes[x_cur+1][y_cur+1];
+				nodeCost[x_cur][y_cur] = diagNbr;		
+			}
+		
+			else // == rightNbr
+			{
+				nodeDashes[x_cur][y_cur] = nodeDashes[x_cur][y_cur+1] + 1;
+				nodeCost[x_cur][y_cur] = rightNbr;		
+			}
+			
+			y_cur--;
+		}
+		
+		x-- ; y--;	
+	}
+	
+	//for (int i = 0 ; i<s1.length()+1 ; i++)
+	//	for (int j = 0 ; j <s2.length()+1 ; j++)
+	//		nodeCost[i][j] -= CCeff*nodeDashes[i][j];
+			
+	return nodeCost;
+}
 
 void Problem::printProblemDetails()
 {
@@ -539,6 +657,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 			}
 		}		
 	}
+	cout << "Nodes gen : " << Node::nodeCount <<endl;
 	cout << bestCostYet << endl;
 	p.printSoln(*bestPathYet);			// prints optimal solution
 };
@@ -598,37 +717,18 @@ int main()
 	scanf("%c",&end); 
 	
 //-------------------------------------------------------------------------------//
-
+	clock_t start;
+	double diff;
+	start = clock();
 //	if (end == '#')
 
 	Problem* current = new Problem(sizeOfVocab,noOfStrings,CC,vocab,strings,MC);
-	//cout << "First est : " << current->firstEst() <<endl;
+	cout << "First est : " << current->firstEst() <<endl;
 	DFSbb(*current);
 	
-/*	
-	vector<char> vocab = {'A','T'};
-	vector<string> strings = {"ATAA","TAT","TTTTTT"};
-	vector<vector<int> > MC = {{0,2,1},{2,0,1},{1,1,0}};
 	
-	Problem* current = new Problem(2,3,3,vocab,strings,MC);
 	
-//	Node(vector<int> stateIndices, int cost, const Problem& p);		// successor constructor
+	diff = ( std::clock() - start ) / (double)CLOCKS_PER_SEC;
+	cout<<"time taken: "<< diff <<" sec\n" <<"\n";
 	
-	//cout << current->firstEst() <<endl;
-	
-	//Node* n1 = new Node(vector<int>{0,0,1},0,*current);
-	//Node* n2 = new Node(vector<int>{1,0,1},0,*current);
-	//Node* n3 = new Node(vector<int>{1,1,1},0,*current);
-	
-	//vector<Node*> path = {n1,n2,n3,n4,n5,n6,n7,n8,n9};
-	
-	//for (int i = 0 ; i<8 ; i++)
-	//	cout << current->pathCost(*path[i],*path[i+1]) << " ";
-	
-	vector<Node*> temp = current->successors(current->startNode());
-	
-	for ( int i = 0 ; i<temp.size() ; i++)
-		temp[i]->printNodeDetails();
-	
-	cout <<endl;*/
 }
