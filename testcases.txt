@@ -1,3 +1,6 @@
+#1
+---
+
 5.5                                                  
 4
 a, c, t, g
@@ -12,14 +15,17 @@ ccacctgag
 3 3 3 0 1
 1 1 1 1 0
 #
+
+Nodes gen : 22254
 41
 --ac-tgtgtag
 --acgt-ttttc
 ccacctg---ag
-
-time taken: 48.0233 sec
+time taken: 0.057236 sec
 
 ==============================
+#2
+---
 
 5
 4
@@ -36,17 +42,20 @@ tagc
 3 3 0 3 1
 3 3 3 0 1
 1 1 1 1 0
+#
 
+Nodes gen : 453253
 66
 ca--tg
 -ag-ag
 ta-c-g
 c-cct-
-tagc—-
-
-time taken: 489 sec (8 min 9 sec)
+tagc--
+time taken: 1.27316 sec
 
 ==============================
+#3
+---
 
 5.5
 4
@@ -63,26 +72,27 @@ cccgatta
 1 1 1 1 0
 #
 
+Nodes gen : 11838
 41
 caag-tagt-cc-
 ---gata--accg
 cccgat--ta---
-
-Nodes gen : 2824829
-time taken: 37.1188 sec
+time taken: 0.030856 sec
 
 =============================
+#4
+---
 
 5
 4
 a, c, t, g
 6
-gg
-tt
-ac
-gt
-ac
-aa
+ggac
+ttac
+acgg
+gtat
+acta
+aacc
 1
 0 3 3 3 1
 3 0 3 3 1 
@@ -91,16 +101,19 @@ aa
 1 1 1 1 0
 #
 
-66
--gg-
--t-t
-a-c-
--g-t
-a-c-
-a--a
-time taken: 33.1415 sec
+Nodes gen : 159099
+88
+ggac--
+ttac--
+--acgg
+gta-t-
+--acta
+-aac-c
+time taken: 0.484777 sec
 
 =============================
+#5
+---
 
 5
 4
@@ -117,10 +130,108 @@ cagtgagtga
 1 1 1 1 0
 #
 
+Nodes gen : 31270
 45
 -actg--gt-gtgt
 ---tgaacccg-ga
-cagtg-a---gtga
-time taken: 80.6088 sec
+cagtga----gtga
+time taken: 0.070637 sec
 
 ============================
+
+#6
+---
+
+4
+4
+a, c, t, g
+6
+ggaa
+ttagg
+ag
+gtt
+ttag
+acac
+1
+0 3 3 3 1
+3 0 3 3 1
+3 3 0 3 1
+3 3 3 0 1
+1 1 1 1 0
+#
+
+Nodes gen : 893035
+95
+g-ga-a-
+-ttag-g
+---a--g
+gtt----
+-tta--g
+---acac
+time taken: 2.59259 sec
+
+===========================
+
+#7
+---
+
+5
+4
+a, c, t, g
+3
+acggattagaggagg
+ctagatgcgtatag
+gggtctctaggactga
+1
+0 3 3 3 1
+3 0 3 3 1
+3 3 0 3 1
+3 3 3 0 1
+1 1 1 1 0
+#
+
+Nodes gen : 27756675
+66
+acgg-at-taga-g-g-a--g-g
+-c----t--agatgcgta-t-ag
+g-ggtctctag--g---actga-
+time taken: 61.8661 sec
+
+===========================
+
+#8
+---
+
+4
+4
+a, c, t, g
+8
+agca
+gtga
+ccgcg
+agct
+taga
+cg
+cggat
+aaaa
+1
+0 3 3 3 1
+3 0 3 3 1
+3 3 0 3 1
+3 3 3 0 1
+1 1 1 1 0
+#
+
+Nodes gen : 40134860
+169
+-agc-a-
+--gtga-
+ccgcg--
+-agc--t
+tag--a-
+c-g----
+c-g-gat
+-a--aaa
+time taken: 154.532 sec
+
+=========================

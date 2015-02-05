@@ -234,7 +234,7 @@ const vector<Node*> Problem::successors(Node* node)
 	
 	for (int j=1; j<pow(2,remStrings); j++)
 	{
-		bitset<16> stateUpdater = bitset<16>(j); 
+		bitset<64> stateUpdater = bitset<64>(j); 
 
 		for (int k=0; k<remStrings; k++)
 		{
@@ -247,14 +247,16 @@ const vector<Node*> Problem::successors(Node* node)
 	}
 	
 	sort(nodeSuccessors.begin() , nodeSuccessors.end(), [](Node* a, Node* b){return a->path_cost() + a->h() > b->path_cost() + b->h();});	// for decreasing order	
-	return nodeSuccessors;
 	
-	/*for (int i = 0 ; i<nodeSuccessors.size()-1 ; i++)
+	/*
+	for (int i = 0 ; i<nodeSuccessors.size()-1 ; i++)
 			{
-				int tem = nodeSuccessors[i]->path_cost()+nodeSuccessors[i]->h();
-				cout << "Node f(n) : " << tem << endl;
+				int tem = nodeSuccessors[i]->h();
+				cout << "Node h(n) : " << tem << endl;
 			}
 	cout << "xxxxxxxxxxxxxxxxxxx" <<endl;	*/
+	
+	return nodeSuccessors;
 }
 
 void Problem::printSoln(vector<Node*> pathInReverse)

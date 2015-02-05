@@ -27,10 +27,10 @@ Node::Node(int noOfStrings, int sizeOfVocab, const Problem& p)
 		string curr = p.stringVector()[i];
 		int l       = curr.length();
 
-		for (int j = 0 ; j<l ; j++)
-			remChar[i][p.characIndex()[(int)curr[j]]]++;
+		//for (int j = 0 ; j<l ; j++)
+		//	remChar[i][p.characIndex()[(int)curr[j]]]++;
 	}
-	nodeCount=1;
+	nodeCount = 1;
 	hst       = p.DPhst(*this);
 	//printNodeDetails();
 }
@@ -40,11 +40,11 @@ Node::Node(Node* par, vector<int> stateIndices, const Problem& p, int noOfString
 	stIndices    = stateIndices;
 	count        = 0;
 	parent       = par;
-	remChar      = par->remainingChar();
+	//remChar      = par->remainingChar();
 
-	for (int i=0 ; i<noOfStrings ; i++)
-		if (stIndices[i] - par->stateIndices()[i] == 1)
-			remChar[i][p.characIndex()[(int)p.stringVector()[i][stateIndices[i]-1]]]--;
+	//for (int i=0 ; i<noOfStrings ; i++)
+	//	if (stIndices[i] - par->stateIndices()[i] == 1)
+	//		remChar[i][p.characIndex()[(int)p.stringVector()[i][stateIndices[i]-1]]]--;
 
 	pathcost  = par->path_cost() + p.pathCost(*par,*this);
 	hst       = p.DPhst(*this);
