@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <set>
 
 #ifndef PROBLEM_CPP
 	#define PROBLEM_CPP	
@@ -298,6 +299,8 @@ vector<string> Problem::randomStateGenerator(int size)
 	return state;
 }
 
+/////////////////     HILL CLIMB HELPERS     ////////////////
+
 const int Problem::columnCost(const vector<string>& vs , int i , int j, int col)
 {
 	int cost =  0;
@@ -320,6 +323,8 @@ const int Problem::allMatchingCost(const vector<string>& vs)
 	return cost;
 }
 
+//////////////////////////////////////////////////////////////
+
 vector<string> Problem::hillClimb(vector<string> vs, int l)			// all strings built up to length l
 {
 	/* STRATEGY
@@ -327,8 +332,8 @@ vector<string> Problem::hillClimb(vector<string> vs, int l)			// all strings bui
 	 * Scan all dashes and see if moving left or right
 	 * improves the cost at every step
 	 * If it does, move to neighbour, else terminate */
-	
-	vector<int> bestNgb(3);		// store coordinates and whether left(0) or right(1) neighbour is best
+
+	vector<int> bestNgb(3);		// store coordinates and whether left(0) or right(1) neighbour is bes
 	int bestChangeYet;			// the more negative, the better 
 	int loopCount = 0; 			// book-keeping
 	
@@ -338,6 +343,36 @@ vector<string> Problem::hillClimb(vector<string> vs, int l)			// all strings bui
 	
 	// primitive now, initialise positions of dashes to look up in constant time
 	// modify only updated dashes, use a priority queue
+
+	vector<vector<vector<int> > > dashCostMatrix(noOfStrings , vector<vector<int> >(l, vector<int>(2)));
+	set<vector<int> , [](vector<int>* lhs, vector<int>* rhs){return (dashCostMatrix[lhs[0]][lhs[1]][lhs[2]] < dashCostMatrix[rhs[0]][rhs[1]][rhs[2]]);} > dashSet;
+	
+	//initialise set
+	for (int i = 0 ; i<noOfStrings ; i++)
+		for (int j = 0 ; j<l ; j++)
+			if (vs[i][j] == '-')
+				{
+					if (j>0 and vs[i][j-1]!='-')
+					{
+						int curCost = columnCost(vs,i,j,j)   + columnCost(vs,i,j-1,j-1);
+						int finCost = columnCost(vs,i,j,j-1) + columnCost(vs,i,j-1,j);
+						
+						dashCostMatrix[i][j][0] = finCost - curCost;
+						vector<int> cur = {i,j,0,finCost-curCost};
+						dashSet.insert(cur);
+					}
+					
+					if (j<l-1 and vs[i][j+1]!='-')
+					{
+						int curCost = columnCost(vs,i,j,j)   + columnCost(vs,i,j+1,j+1);
+						int finCost = columnCost(vs,i,j,j+1) + columnCost(vs,i,j+1,j);
+						
+						dashCostMatrix[i][j][0] = finCost - curCost;
+						vector<int> cur = {i,j,1,finCost-curCost};
+						dashSet.insert(cur);
+					}
+				}
+	
 	
 	while (true)
 	{
@@ -427,8 +462,6 @@ vector<string> Problem::hillClimb(vector<string> vs, int l)			// all strings bui
 			vs[bestNgb[0]][bestNgb[1]] = vs[bestNgb[0]][bestNgb[1]+1];
 			vs[bestNgb[0]][bestNgb[1]+1] = temp;
 		}
-		
-		
 		
 		// checking if column of dashes align
 	//	bool check1 = true;
