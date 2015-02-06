@@ -294,7 +294,7 @@ vector<vector<int> > Problem::DPsolve(const string& s1, const string& s2)				// 
 	vector<vector<int> > nodeCost(s1.length()+1 , vector<int>(s2.length()+1));			// initially includes cost of dashes, remove before returning
 	vector<vector<int> > nodeDashes(s1.length()+1 , vector<int>(s2.length()+1));		// no of dashes in optimal solution, need to remove cost in the end
 	
-	int CCeff = 0;
+	int CCeff = 12*CC;
 	int x = s1.length();	   	//	-------> y
 	int y = s2.length();		//  |
 	

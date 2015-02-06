@@ -235,3 +235,93 @@ c-g-gat
 time taken: 154.532 sec
 
 =========================
+
+#9
+---
+
+5
+4
+a,c,t,g
+3
+cgatccgatagcatgcattcag
+gcgtagctatggttgaggttat
+cccgcgtgcgattagctagtg
+1
+0 3 3 3 1
+3 0 3 3 1
+3 3 0 3 1
+3 3 3 0 1
+1 1 1 1 0
+#
+
+Nodes gen : 40019290
+81
+cgatccgatagc-atgc-attcag-------
+-g--c-g-tagctatg-g-ttgaggtta-t-
+c---cc----gcg-tgcgatt-agct-agtg
+time take: ~85 sec
+
+=============================
+
+#10
+---
+
+4
+4
+a,c,t,g
+3
+agcgcgacgttagttagccagtacgcagatatc
+agttggcattacgacccatagttacatgcgg
+atttgccaaattttgaccagaacgatcatgcaa
+1
+0 3 3 3 1
+3 0 3 3 1
+3 3 0 3 1
+3 3 3 0 1
+1 1 1 1 0
+#
+
+107	(might not be optimal but close)
+a---gcgcgacgttagtt-agccagtacgcagat-at-c--
+agttg-gc-a--ttac--gaccca-ta-gtt-a-catgcgg
+atttgc-caaa-tt--ttga-ccagaacg---atcatgcaa
+time taken: 312.121 sec
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////                 SUBOPTIMAL               /////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+4
+4
+a,c,t,g
+10
+ttcgaatgttacagcgagacaggatcccatttagggatcggaatccgaataaaagtatcg
+ttgacctctaacggagggtaactgcttaccacccgggagcgccgtcaggggcgcgttgcc
+atcaacgcctaaccagggttcccttaaattttaggacaaataaccaaagtatctatagtt
+ggcaacagactgcttgtaagcgcacaagtactgcgaccctctccgtaacagcatacagaa
+aggccttatgatactcaaagtaccaaaccggctggggtttcggtggacccgtctcatgca
+cggttctgaatcccacgacgcctggactaagaggtacatatgacaccaaactacttgagt
+ttgatcagggttgatctcatccatcgccatgtagaaattctttcagccgcgttgaatcag
+gaagtccgcccttagtttctcaatacaggtccgtagaagcagatgacctgcacacgactc
+aaatactgaacctggggtcacaaaaaaggtggcgtgttcacgattgagccacaggaccaa
+agagcaagaaagcgctttagagtgtctacccaataccaaccgagatgtgtgctgctttct
+1
+0 3 3 3 1
+3 0 3 3 1
+3 3 0 3 1
+3 3 3 0 1
+1 1 1 1 0
+#
+
+-ttc--g-a---atg-ttac--agc-gag--aca--g-ga-tcccatt-t-agggatc-g-ga-at-ccgaa--taa-aagtatcg-
+-ttgac-ctct-a--ac-g----g-ag-ggta-actg-c-tta-c-cac-ccgg--g-agcg-c-c-gtcaggggcgcg-tt-gc-c
+--a-tc--aacg---cctaacca--gg-gttcc-ct-taaat-tt-ta--g-ga-c--a-a-ata-ac-caaagtatcta-tagtt-
+gg-ca-acaga-ctgcttg-taagcgcac-aag----t-act-gcg---accc-tctc-c-g---ta-aca-gc-at--ac-aga-a
+ag-gcctta-tgat-act---ca--a-agtacca---a-ac-cg-gctg-g-ggtttc-g-g---tggac-c-cg-tct-catgc-a
+cg-gt-tctga-at--cc-c--a-c-ga--c-gcctg-gactaa-g-ag-g---ta-ca-t-atg-ac--ac-caaactacttgagt
+-ttga-tcagggttga-t-ctcatc-ca-tc-g---c-ca-t---gtaga-a-at-tct-ttcag--c-c--gcg-ttgaat-cag-
+gaagtc-c---gc-cctta-g-ttt-c--tca-a-t-aca--ggtcc-gt-aga-agc--agatg-ac-ct-gc-a-cacg-a-ctc
+a-a-a-t-ac---tga--ac-ctgggg--tcac----aaaaaag-gt-g-gcgtgtt--c--acg-attga-gcca-c-aggaccaa
+agag-c--a-agaaagc-gct-tt-agagt--g--tct-ac-c-caat-a-ccaac-c-gagatgt-g--t-gct-gc--ttt-ct-
+4850
+time taken: 661.279 sec {5000 iterations}
