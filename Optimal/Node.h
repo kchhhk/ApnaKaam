@@ -35,6 +35,7 @@ class Node
 		void incrementCounter(){count++;};
 		void printNodeDetails();
 		static int nodeCount ;
+		static int visitCount ;
 
 	private:
 		Node* parent;

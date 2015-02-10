@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <iomanip>
 
 #ifndef PROBLEM_CPP
 	#define PROBLEM_CPP	
@@ -72,6 +73,14 @@ Problem::Problem(int sOfV, int Ks, int CCo, const vector<char>& V, const vector<
 	// startnode and goalnode initialization
 	startnode = new Node(noOfStrings,sOfV,*this);
 	goalnode  = new Node(strLengths);
+	
+// vector<vector<int> > lol = DPsolve(strings[0], strings[1]);
+// 	for (int i = 0 ; i<strLengths[0]+1 ; i++)
+// 	{
+// 		for (int j = 0 ; j<strLengths[1]+1 ; j++)
+// 			cout << setw(4) << lol[i][j] << " ";
+// 		cout << endl;
+// 	}
 }
 
 const int Problem::pathCost(const Node& node1, const Node& node2) const
@@ -265,24 +274,40 @@ void Problem::printSoln(vector<Node*> pathInReverse)
 	vector<string> newstrings(noOfStrings,"");
 	//reverse(pathInReverse.begin(),pathInReverse.end());
 	int size=pathInReverse.size();
-	Node* temp;
-	for (int i=0;i<size/2;i++)
+	
+	if (size==0)		// first estimate is actual solution
 	{
-		temp                    = pathInReverse[i];
-		pathInReverse[i]        = pathInReverse[size-i-1];
-		pathInReverse[size-i-1] = temp;
-	}
-	for (int i=0 ; i<pathInReverse.size(); i++)
-	{
-		vector<int> finalIndex = pathInReverse[i]->stateIndices();
-		for (int j=0; j< noOfStrings; j++)
+		for (int i = 0 ; i<noOfStrings ; i++)
 		{
-			if (finalIndex[j] - initialIndex[j] == 1)
-				newstrings[j] += strings[j][initialIndex[j]];
-			else
-				newstrings[j] += "-";
+			for (int j = 0 ; j<strLengths[i] ; j++)
+				newstrings[i] += strings[i][j];
+			
+			for (int j = 0 ; j<maxStrLength-strLengths[i] ; j++)
+				newstrings[i] += '-';
 		}
-		initialIndex = finalIndex;
+	}
+	
+	else 
+	{
+		Node* temp;
+		for (int i=0;i<size/2;i++)
+		{
+			temp                    = pathInReverse[i];
+			pathInReverse[i]        = pathInReverse[size-i-1];
+			pathInReverse[size-i-1] = temp;
+		}
+		for (int i=0 ; i<pathInReverse.size(); i++)
+		{
+			vector<int> finalIndex = pathInReverse[i]->stateIndices();
+			for (int j=0; j< noOfStrings; j++)
+			{
+				if (finalIndex[j] - initialIndex[j] == 1)
+					newstrings[j] += strings[j][initialIndex[j]];
+				else
+					newstrings[j] += "-";
+			}
+			initialIndex = finalIndex;
+		}
 	}
 
 	for (int i = 0 ; i<noOfStrings ; i++)
@@ -294,7 +319,7 @@ vector<vector<int> > Problem::DPsolve(const string& s1, const string& s2)				// 
 	vector<vector<int> > nodeCost(s1.length()+1 , vector<int>(s2.length()+1));			// initially includes cost of dashes, remove before returning
 	vector<vector<int> > nodeDashes(s1.length()+1 , vector<int>(s2.length()+1));		// no of dashes in optimal solution, need to remove cost in the end
 	
-	int CCeff = 12*CC;
+	int CCeff = 0;
 	int x = s1.length();	   	//	-------> y
 	int y = s2.length();		//  |
 	

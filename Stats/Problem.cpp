@@ -265,25 +265,42 @@ void Problem::printSoln(vector<Node*> pathInReverse)
 	vector<int> initialIndex(noOfStrings,0);																		
 	vector<string> newstrings(noOfStrings,"");
 	//reverse(pathInReverse.begin(),pathInReverse.end());
+	
 	int size=pathInReverse.size();
-	Node* temp;
-	for (int i=0;i<size/2;i++)
+	
+	if (size==0)		// first estimate is actual solution
 	{
-		temp                    = pathInReverse[i];
-		pathInReverse[i]        = pathInReverse[size-i-1];
-		pathInReverse[size-i-1] = temp;
-	}
-	for (int i=0 ; i<pathInReverse.size(); i++)
-	{
-		vector<int> finalIndex = pathInReverse[i]->stateIndices();
-		for (int j=0; j< noOfStrings; j++)
+		for (int i = 0 ; i<noOfStrings ; i++)
 		{
-			if (finalIndex[j] - initialIndex[j] == 1)
-				newstrings[j] += strings[j][initialIndex[j]];
-			else
-				newstrings[j] += "-";
+			for (int j = 0 ; j<strLengths[i] ; j++)
+				newstrings[i] += strings[i][j];
+			
+			for (int j = 0 ; j<maxStrLength-strLengths[i] ; j++)
+				newstrings[i] += '-';
 		}
-		initialIndex = finalIndex;
+	}
+	
+	else
+	{
+		Node* temp;
+		for (int i=0;i<size/2;i++)
+		{
+			temp                    = pathInReverse[i];
+			pathInReverse[i]        = pathInReverse[size-i-1];
+			pathInReverse[size-i-1] = temp;
+		}
+		for (int i=0 ; i<pathInReverse.size(); i++)
+		{
+			vector<int> finalIndex = pathInReverse[i]->stateIndices();
+			for (int j=0; j< noOfStrings; j++)
+			{
+				if (finalIndex[j] - initialIndex[j] == 1)
+					newstrings[j] += strings[j][initialIndex[j]];
+				else
+					newstrings[j] += "-";
+			}
+			initialIndex = finalIndex;
+		}
 	}
 
 //	for (int i = 0 ; i<noOfStrings ; i++)

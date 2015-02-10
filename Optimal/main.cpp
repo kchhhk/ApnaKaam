@@ -83,7 +83,8 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 			}
 			
 			else							// push successors into stack, set parents to current
-			{
+			{	
+				Node::visitCount++;
 				vector<Node*> temp = p.successors(current);				// ASSERT: decreasing order of f(n)
 
 				for (vector<Node*>::iterator it = temp.begin() ; it != temp.end() ; it++)
@@ -101,6 +102,7 @@ void DFSbb(Problem& p) 			// DFS branch & bound implementation					//!! duplicat
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Node::nodeCount=0;
+int Node::visitCount=0;
 
 int main()
 {
@@ -165,6 +167,7 @@ int main()
 	
 	DFSbb(*current);
 	
+	cout << "Nodes visited : " << Node::visitCount << endl;
 	
 	
 	diff = ( std::clock() - start ) / (double)CLOCKS_PER_SEC;

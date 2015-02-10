@@ -259,7 +259,7 @@ Nodes gen : 40019290
 cgatccgatagc-atgc-attcag-------
 -g--c-g-tagctatg-g-ttgaggtta-t-
 c---cc----gcg-tgcgatt-agct-agtg
-time take: ~85 sec
+time taken: ~85 sec
 
 =============================
 
@@ -313,15 +313,15 @@ agagcaagaaagcgctttagagtgtctacccaataccaaccgagatgtgtgctgctttct
 1 1 1 1 0
 #
 
--ttc--g-a---atg-ttac--agc-gag--aca--g-ga-tcccatt-t-agggatc-g-ga-at-ccgaa--taa-aagtatcg-
--ttgac-ctct-a--ac-g----g-ag-ggta-actg-c-tta-c-cac-ccgg--g-agcg-c-c-gtcaggggcgcg-tt-gc-c
---a-tc--aacg---cctaacca--gg-gttcc-ct-taaat-tt-ta--g-ga-c--a-a-ata-ac-caaagtatcta-tagtt-
-gg-ca-acaga-ctgcttg-taagcgcac-aag----t-act-gcg---accc-tctc-c-g---ta-aca-gc-at--ac-aga-a
-ag-gcctta-tgat-act---ca--a-agtacca---a-ac-cg-gctg-g-ggtttc-g-g---tggac-c-cg-tct-catgc-a
-cg-gt-tctga-at--cc-c--a-c-ga--c-gcctg-gactaa-g-ag-g---ta-ca-t-atg-ac--ac-caaactacttgagt
--ttga-tcagggttga-t-ctcatc-ca-tc-g---c-ca-t---gtaga-a-at-tct-ttcag--c-c--gcg-ttgaat-cag-
-gaagtc-c---gc-cctta-g-ttt-c--tca-a-t-aca--ggtcc-gt-aga-agc--agatg-ac-ct-gc-a-cacg-a-ctc
-a-a-a-t-ac---tga--ac-ctgggg--tcac----aaaaaag-gt-g-gcgtgtt--c--acg-attga-gcca-c-aggaccaa
-agag-c--a-agaaagc-gct-tt-agagt--g--tct-ac-c-caat-a-ccaac-c-gagatgt-g--t-gct-gc--ttt-ct-
-4850
-time taken: 661.279 sec {5000 iterations}
+t-tcgaatgt-t--ac--agc--gagacag-g--a--tc--c--c-att---t---agg-gatcg-ga-atccg-a--at---aaa-a-gta-tc-g
+t-t-gac-ctcta-acggag--gg--t-a-act--gctta-c--c-a--cccg----gg-a-gcgcc--g-tc--agg--gg--cgcgt-tgc-c--
+a-tc-a-acgc-ctaaccag--ggt-t--c-c-c-t-taa---a---tt-t-tagga-c---a---aataacc-aaag-tatct---at--agt--t
+-ggc-a-ac---agac--tgctt----g--t--aagcgca-caa--gtact-g-cga-cc---c-t--c-tccgta----a-cag-cata-c-agaa
+aggcc-t--tat-ga-t-a-ct---c--aaagt-a-ccaa--acc-g---gctggg-g-t-ttcg----g-t-gga--c--cc-gtc-tcatg-ca-
+-cg-g-ttct---ga--atccc--ac-gac-g-c--ct--g-gacta-a-gag--gtac-ata--tgac-accaaa--c--t-a--c-t-t-gag-t
+--ttga---tc---a-g--ggttga-tctcatccatcg--cc-a-tg---tagaa-a--t-t-c-t--t--tc--agcc-g-c---gtt-gaatcag
+-g---a-agtc-cgcc-ct--tagt-t---tctca-at-a-c-a-ggtcc--gtagaa--gca-g--atga-c-c-tgc-a-cac-----ga--ctc
+a--a-ata--ct-gaacctg--gg-gt--ca--ca-a-aaa--a-ggt--g-g-cgtg-t-t---c-acgat-tga-gcca-c--aggac-c-a-a-
+a---gag---c-a-a-gaa---ag-c-g-cttt-ag---agtg--t---ct--acc--caatac-c-a--accg-a-gatgt--gtgct-gctttct
+4824
+time taken: 262.888 sec {20000 iterations}
